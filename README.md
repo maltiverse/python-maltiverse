@@ -4,7 +4,7 @@ Python library for [maltiverse.com](https://www.maltiverse.com/) APIs
 ## Install
 
 ```
-pip install python-maltiverse
+pip install git+https://github.com/maltiverse/python-maltiverse
 ```
 
 ## Examples
@@ -14,15 +14,16 @@ Without API authentication:
 ```
 from maltiverse import Maltiverse
 api = Maltiverse()
-api.domain_lookup('teske.pornicarke.com')
+api.hostname_get('teske.pornicarke.com')
 ```
 
 With API authentication:
 
 ```
 from maltiverse import Maltiverse
-api = Maltiverse('A4HD6N0V3J357GM7D189V17Y0S')
-api.domain_lookup('teske.pornicarke.com')
+api = Maltiverse()
+api.login(email="email", password="password")
+api.hostname_get('teske.pornicarke.com')
 ```
 
 ## Output
@@ -72,6 +73,7 @@ api.domain_lookup('teske.pornicarke.com')
 
 ## Available methods
 
-+ ip_lookup()
-+ domain_lookup()
-+ sample_lookup()
++ ip_get()
++ hostname_get()
++ url_get()
++ sample_get()
