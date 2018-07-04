@@ -61,7 +61,7 @@ class Maltiverse(object):
 
 
         r = self.session.put(self.endpoint + method, data=json.dumps(params))
-        print self.session.headers
+        
 
         return r
 
