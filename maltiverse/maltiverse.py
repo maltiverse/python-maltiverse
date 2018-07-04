@@ -40,7 +40,7 @@ class Maltiverse(object):
                 for bl in params['blacklist']:
                     bl['ref'] = self.sub
                     bl['source'] = self.team_name
-                    new_blacklist.push(bl)
+                    new_blacklist.append(bl)
                 params['blacklist'] = new_blacklist
         r = self.session.put(self.endpoint + method, data=json.dumps(params))
         print self.session.headers
