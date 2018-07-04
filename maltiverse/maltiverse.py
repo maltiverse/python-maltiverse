@@ -49,7 +49,7 @@ class Maltiverse(object):
                         params['blacklist'][i].pop('first_seen', None)
                     if 'last_seen' in params['blacklist'][i]:
                         params['blacklist'][i].pop('last_seen', None)
-            print params
+            
 
         r = self.session.put(self.endpoint + method, data=json.dumps(params))
         print self.session.headers
