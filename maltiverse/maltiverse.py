@@ -39,6 +39,7 @@ class Maltiverse(object):
                 for i, bl in enumerate(params['blacklist']):
                     params['blacklist'][i]['ref'] = self.sub
                     params['blacklist'][i]['source'] = self.team_name
+            print params
 
         r = self.session.put(self.endpoint + method, data=json.dumps(params))
         print self.session.headers
