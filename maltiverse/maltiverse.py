@@ -35,10 +35,20 @@ class Maltiverse(object):
 
     def put(self, method, params):
         if self.team_researcher and not self.admin:
+            # Adding required information to push info being a researcher.
             if 'blacklist' in params:
                 for i, bl in enumerate(params['blacklist']):
+                    # Must set the ref
                     params['blacklist'][i]['ref'] = self.sub
+
+                    # Must set the team name as the Blacklist source
                     params['blacklist'][i]['source'] = self.team_name
+
+                    # Is not allowed to specify dates
+                    if 'first_seen' in params['blacklist'][i]:
+                        params['blacklist'][i].pop('first_seen', None)
+                    if 'last_seen' in params['blacklist'][i]:
+                        params['blacklist'][i].pop('last_seen', None)
             print params
 
         r = self.session.put(self.endpoint + method, data=json.dumps(params))
