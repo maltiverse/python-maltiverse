@@ -7,18 +7,26 @@ import requests
 import hashlib
 from urllib import quote_plus
 
+import base64
+
+
+
 class Maltiverse(object):
 
     def __init__(self, auth_token=None, endpoint='https://api.maltiverse.com'):
         self.endpoint = endpoint
         self.auth_token = auth_token
+        self.sub = None
+        self.team_name = None
+        self.team_researcher = None
+        self.admin = None
         self.session = requests.Session()
         self.session.headers = {
             'content-type': 'application/json',
             'accept': 'application/json',
         }
         if auth_token:
-            self.session.headers.update({'Authorization': 'Bearer {0}'.format(self.auth_token)})
+            self.session.headers.update({'Authorization': 'Bearer ' + self.auth_token})
 
     def get(self, method, params=None):
         r = self.session.get(self.endpoint + method, params=params)
@@ -26,8 +34,17 @@ class Maltiverse(object):
         return r
 
     def put(self, method, params):
+        if self.team_researcher and not self.admin:
+            if 'blacklist' in params:
+                new_blacklist = []
+                for bl in params['blacklist']:
+                    bl['ref'] = self.sub
+                    bl['source'] = self.team_name
+                    new_blacklist.push(bl)
+                params['blacklist'] = new_blacklist
         r = self.session.put(self.endpoint + method, data=json.dumps(params))
-        #r.raise_for_status()
+        print self.session.headers
+
         return r
 
     def post(self, method, params):
@@ -47,7 +64,12 @@ class Maltiverse(object):
         if 'status' in r_json and r_json['status'] == 'success':
             if r_json['auth_token']:
                 self.auth_token = r_json['auth_token']
-                self.session.headers.update({'Authorization': 'Bearer {0}'.format(self.auth_token)})
+                decoded_payload = json.loads(base64.b64decode(r_json['auth_token'].split('.')[1]))
+                self.sub = decoded_payload['sub']
+                self.team_name = decoded_payload['team_name']
+                self.team_researcher = decoded_payload['team_researcher']
+                self.admin = decoded_payload['admin']
+                self.session.headers.update({'Authorization': 'Bearer ' + self.auth_token})
                 return True
         return False
 

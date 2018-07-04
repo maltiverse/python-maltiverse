@@ -12,8 +12,8 @@ class TestMaltiverse(unittest.TestCase):
    """Test for Maltiverse class"""
    def __init__(self, *args, **kwargs):
        super(TestMaltiverse, self).__init__(*args, **kwargs)
-       self.email = "test@test.com"
-       self.password = "password"
+       self.email = "agm@maltiverse.com"
+       self.password = "Qwertyui1!"
 
    def test_ip_get(self):
         """ Test that performs an ip lookup"""
@@ -27,6 +27,7 @@ class TestMaltiverse(unittest.TestCase):
         """ Test that performs a IP put and a delete """
         m = Maltiverse()
         m.login(email=self.email, password=self.password)
+        print m.auth_token
         ip_dict = {
           "blacklist": [
             {
