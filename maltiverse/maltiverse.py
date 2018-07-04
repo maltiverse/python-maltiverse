@@ -36,12 +36,10 @@ class Maltiverse(object):
     def put(self, method, params):
         if self.team_researcher and not self.admin:
             if 'blacklist' in params:
-                new_blacklist = []
-                for bl in params['blacklist']:
-                    bl['ref'] = self.sub
-                    bl['source'] = self.team_name
-                    new_blacklist.append(bl)
-                params['blacklist'] = new_blacklist
+                for i, bl in enumerate(params['blacklist']):
+                    params['blacklist'][i]['ref'] = self.sub
+                    params['blacklist'][i]['source'] = self.team_name
+
         r = self.session.put(self.endpoint + method, data=json.dumps(params))
         print self.session.headers
 
