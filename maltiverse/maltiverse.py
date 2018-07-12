@@ -43,6 +43,9 @@ class Maltiverse(object):
                 if 'modification_time' in params:
                     params.pop('modification_time', None)
 
+                if 'domain' in params:
+                    params.pop('domain', None)
+
                 if 'type' in params:
                     params.pop('type', None)
 
@@ -61,7 +64,7 @@ class Maltiverse(object):
 
 
         r = self.session.put(self.endpoint + method, data=json.dumps(params))
-        
+
 
         return r
 
