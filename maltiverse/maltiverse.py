@@ -46,6 +46,9 @@ class Maltiverse(object):
                 if 'domain' in params:
                     params.pop('domain', None)
 
+                if 'urlchecksum' in params:
+                    params.pop('urlchecksum', None)
+
                 if 'type' in params:
                     params.pop('type', None)
 
