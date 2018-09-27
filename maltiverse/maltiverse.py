@@ -5,6 +5,7 @@
 import json
 import requests
 import hashlib
+import jwt
 from urllib import quote_plus
 
 import base64
@@ -90,8 +91,9 @@ class Maltiverse(object):
 
         if 'status' in r_json and r_json['status'] == 'success':
             if r_json['auth_token']:
+
                 self.auth_token = r_json['auth_token']
-                decoded_payload = json.loads(base64.b64decode(r_json['auth_token'].split('.')[1]))
+                decoded_payload = jwt.decode(self.auth_token, verify=False)
                 self.sub = decoded_payload['sub']
                 self.team_name = decoded_payload['team_name']
                 self.team_researcher = decoded_payload['team_researcher']

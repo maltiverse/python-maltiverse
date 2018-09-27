@@ -13,7 +13,7 @@ class TestMaltiverse(unittest.TestCase):
    def __init__(self, *args, **kwargs):
        super(TestMaltiverse, self).__init__(*args, **kwargs)
        self.email = "agm@maltiverse.com"
-       self.password = "Qwertyui1!"
+       self.password = "waecae99G"
 
    def test_ip_get(self):
         """ Test that performs an ip lookup"""
