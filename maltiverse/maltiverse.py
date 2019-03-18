@@ -5,11 +5,14 @@
 import json
 import requests
 import hashlib
-import jwt
-from urllib import quote_plus
-
+from jwt import JWT
+import sys
 import base64
 
+if sys.version_info >= (3, 4):
+    from urllib.parse import quote_plus
+else:
+    from urllib import quote_plus
 
 
 class Maltiverse(object):
@@ -93,7 +96,8 @@ class Maltiverse(object):
             if r_json['auth_token']:
 
                 self.auth_token = r_json['auth_token']
-                decoded_payload = jwt.decode(self.auth_token, verify=False)
+                jwt = JWT()
+                decoded_payload = JWT.decode(jwt, self.auth_token, do_verify=False)
                 self.sub = decoded_payload['sub']
                 self.team_name = decoded_payload['team_name']
                 self.team_researcher = decoded_payload['team_researcher']
