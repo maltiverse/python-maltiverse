@@ -3,17 +3,17 @@
 
 
 import unittest
-import urllib2
 import json
 from maltiverse import Maltiverse
-
+import time
 
 class TestMaltiverse(unittest.TestCase):
    """Test for Maltiverse class"""
    def __init__(self, *args, **kwargs):
        super(TestMaltiverse, self).__init__(*args, **kwargs)
        self.email = "foo@bar.com"
-       self.password = "password"
+       self.password = "fakepassword"
+
 
    def test_ip_get(self):
         """ Test that performs an ip lookup"""
@@ -27,7 +27,6 @@ class TestMaltiverse(unittest.TestCase):
         """ Test that performs a IP put and a delete """
         m = Maltiverse()
         m.login(email=self.email, password=self.password)
-        print m.auth_token
         ip_dict = {
           "blacklist": [
             {
@@ -90,6 +89,9 @@ class TestMaltiverse(unittest.TestCase):
         self.assertTrue(item['status'] == 'success')
         self.assertTrue(item['message'] == 'Hostname created' or item['message'] == 'Hostname updated' )
 
+        #Wait for two seconds to permit DB transaction happen
+        time.sleep(2)
+
         item = m.hostname_delete(hostname_dict['hostname'])
         print item
         self.assertTrue(isinstance(str(item), str))
@@ -102,7 +104,7 @@ class TestMaltiverse(unittest.TestCase):
    def test_url_get(self):
         """ Test that performs an url lookup"""
         m = Maltiverse()
-        item = m.url_get('http://www.hedgeconetworks.com/wp-includes/js/login.php')
+        item = m.url_get('https://www.welsfagmary-online.com/')
         self.assertTrue(isinstance(str(item), str))
         self.assertTrue(isinstance(item, dict))
         self.assertTrue('url' in item)
@@ -130,6 +132,9 @@ class TestMaltiverse(unittest.TestCase):
         self.assertTrue('status' in item)
         self.assertTrue(item['status'] == 'success')
         self.assertTrue(item['message'] == 'Url created' or item['message'] == 'Url updated')
+
+        #Wait for two seconds to permit DB transaction happen
+        time.sleep(2)
 
         item = m.url_delete(url_dict['url'])
         print item
@@ -176,6 +181,9 @@ class TestMaltiverse(unittest.TestCase):
         self.assertTrue(item['status'] == 'success')
         self.assertTrue(item['message'] == 'Sample created' or item['message'] == 'Sample updated' )
 
+        #Wait for two seconds to permit DB transaction happen
+        time.sleep(2)
+
         item = m.sample_delete(sample_dict['sha256'])
         print item
         self.assertTrue(isinstance(str(item), str))
@@ -217,7 +225,7 @@ class TestMaltiverse(unittest.TestCase):
         """ Test that performs an url lookup with authenticantion"""
         m = Maltiverse()
         m.login(email=self.email, password=self.password)
-        item = m.url_get('http://www.hedgeconetworks.com/wp-includes/js/login.php')
+        item = m.url_get('https://www.welsfagmary-online.com/')
         self.assertTrue(isinstance(str(item), str))
         self.assertTrue(isinstance(item, dict))
         self.assertTrue('url' in item)
@@ -231,7 +239,14 @@ class TestMaltiverse(unittest.TestCase):
         self.assertTrue(isinstance(item, dict))
         self.assertTrue('sha256' in item)
 
-
+   def test_search(self):
+        """ Test that performs search into the platform"""
+        m = Maltiverse()
+        print m.login(email=self.email, password=self.password)
+        item = m.search('country_code:"CN"', fr=0, size=2)
+        self.assertTrue(isinstance(str(item), str))
+        self.assertTrue(isinstance(item, dict))
+        print len(item['hits']['hits'])
 
 if __name__ == '__main__':
     unittest.main()

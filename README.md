@@ -1,11 +1,53 @@
-# maltiverse-python
-Python library for [maltiverse.com](https://www.maltiverse.com/) APIs
+![](https://maltiverse.com/assets/images/logo/logo_letters_black.png)
 
-## Install
+# python-maltiverse
+Python library for [maltiverse.com](https://www.maltiverse.com/) API.
+
+This python package is meant to ease request to the Maltiverse IoC search engine API which formal definition can be found here:
+
+https://app.swaggerhub.com/apis-docs/maltiverse/api/1.0.0-oas3
+
+
+
+## [1 - Installation](#table-of-contents)
 
 ```
 pip install git+https://github.com/maltiverse/python-maltiverse
 ```
+
+
+## [2 - Usage](#table-of-contents)
+
+## [2.1 - Authentication](#table-of-contents)
+
+Authentication in maltiverse follows a http bearer model with JWT token. JSON Web Token (JWT) is an open standard (RFC 7519) that defines a compact and self-contained way for securely transmitting information between parties as a JSON object. This information can be verified and trusted because it is digitally signed. JWTs can be signed using a secret (with the HMAC algorithm) or a public/private key pair using RSA or ECDSA.
+
+We can create a Maltiverse account in the website and use those credentials to login 
+
+```
+from maltiverse import Maltiverse
+api = Maltiverse()
+api.login(email="email", password="password")
+```
+
+From this point request will be sent with authentication JWT parameter if required.
+
+
++ ip_get()
++ hostname_get()
++ url_get()
++ sample_get()
+
+
+
+
+## [2.2 - IPv4](#table-of-contents)
+## [2.2.1 - GET](#table-of-contents)
+   
+   
+
+
+
 
 ## Examples
 
@@ -71,9 +113,3 @@ api.hostname_get('teske.pornicarke.com')
 }
 ```
 
-## Available methods
-
-+ ip_get()
-+ hostname_get()
-+ url_get()
-+ sample_get()

@@ -29,12 +29,28 @@ class Maltiverse(object):
         if auth_token:
             self.session.headers.update({'Authorization': 'Bearer ' + self.auth_token})
 
+
+
     def get(self, method, params=None):
+        '''Auxiliar method to perform GET requests to the platform'''
+
+        #Removing content-type JSON for get requests to be valid
+        self.session.headers = {
+            'accept': 'application/json',
+        }
+
+        #Perform get request
         r = self.session.get(self.endpoint + method, params=params)
-        #r.raise_for_status()
+
+        #Restoring content-type JSON
+        self.session.headers = {
+            'content-type': 'application/json',
+            'accept': 'application/json',
+        }
         return r
 
     def put(self, method, params):
+        '''Auxiliar method to perform PUT requests to the platform'''
         if self.team_researcher and not self.admin:
             # Adding required information to push info being a researcher.
             if 'blacklist' in params:
@@ -76,13 +92,13 @@ class Maltiverse(object):
         return r
 
     def post(self, method, params):
+        '''Auxiliar method to perform POST requests to the platform'''
         r = self.session.post(self.endpoint + method, data=json.dumps(params))
-        #r.raise_for_status()
         return r
 
     def delete(self, method):
+        '''Auxiliar method to perform DELETE requests to the platform'''
         r = self.session.delete(self.endpoint + method)
-        #r.raise_for_status()
         return r
 
     def login(self, email, password):
@@ -168,4 +184,30 @@ class Maltiverse(object):
     def sample_get_by_md5(self, md5):
         ''' Requests a sample by MD5 '''
         r = self.get('/search?query=md5:"' + md5 + '"')
+        return json.loads(r.text)
+
+
+    def search(self, query, fr=None, size=None, sort=None, range=None, range_field=None):
+        ''' Performs a search into the Maltiverse platform. https://whatis.maltiverse.com/knowledge-base/search-basics/'''
+        params = dict()
+
+        params['query'] = query
+
+        if fr is not None:
+            params['from'] = fr
+
+        if size is not None:
+            params['size'] = size
+
+        if sort:
+            params['sort'] = sort
+
+        if range:
+            params['range'] = range
+
+        if range_field:
+            params['range_field'] = range_field
+
+        r = self.get('/search', params=params)
+
         return json.loads(r.text)

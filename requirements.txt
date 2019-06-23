@@ -1,2 +1,8 @@
+hashlib
 requests
 PyJWT
+urllib
+base64
+json
+unittest
+time

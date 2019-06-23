@@ -3,13 +3,13 @@ from distutils.core import setup
 setup(
     name='maltiverse',
     packages=['maltiverse'],
-    version='0.6.8',
+    version='0.7.2',
     description='API wrapper for Maltiverse',
     author='Antonio Gomez',
     author_email='agm@maltiverse.com',
     url='https://github.com/maltiverse/maltiverse-python',
     download_url='https://github.com/maltiverse/maltiverse-python',
-    keywords=['maltiverse', 'API', 'threat intelligence', 'IOC', 'blacklist'],
+    keywords=['maltiverse', 'API', 'threat intelligence', 'IoC', 'blacklist', 'search engine'],
     classifiers=[],
-    requires=['requests']
+    requires=['hashlib', 'requests', 'PyJWT', 'urllib', 'base64', 'json', 'unittest', 'time']
 )
