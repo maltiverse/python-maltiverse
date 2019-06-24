@@ -187,7 +187,7 @@ class Maltiverse(object):
         return json.loads(r.text)
 
 
-    def search(self, query, fr=None, size=None, sort=None, range=None, range_field=None):
+    def search(self, query, fr=None, size=None, sort=None, range=None, range_field=None, format=None):
         ''' Performs a search into the Maltiverse platform. https://whatis.maltiverse.com/knowledge-base/search-basics/'''
         params = dict()
 
@@ -207,6 +207,9 @@ class Maltiverse(object):
 
         if range_field:
             params['range_field'] = range_field
+
+        if format:
+            params['format'] = format
 
         r = self.get('/search', params=params)
 
