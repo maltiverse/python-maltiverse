@@ -40,7 +40,7 @@ class Maltiverse(object):
         }
 
         #Perform get request
-        r = self.session.get(self.endpoint + method, params=params)
+        r = self.session.get(self.endpoint + method, params=params, timeout=180)
 
         #Restoring content-type JSON
         self.session.headers = {
