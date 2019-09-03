@@ -6,7 +6,6 @@ import json
 import requests
 import hashlib
 import jwt
-from urllib import quote_plus
 
 import base64
 
