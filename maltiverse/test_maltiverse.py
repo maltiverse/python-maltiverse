@@ -39,7 +39,7 @@ class TestMaltiverse(unittest.TestCase):
           "type": "ip"
         }
         item = m.ip_put(ip_dict)
-        print item
+        print(item)
         self.assertTrue(isinstance(str(item), str))
         self.assertTrue(isinstance(item, dict))
         self.assertTrue('status' in item)
@@ -47,7 +47,7 @@ class TestMaltiverse(unittest.TestCase):
         self.assertTrue(item['message'] == 'IP created' or item['message'] == 'IP updated' )
 
         item = m.ip_delete(ip_dict['ip_addr'])
-        print item
+        print(item)
         self.assertTrue(isinstance(str(item), str))
         self.assertTrue(isinstance(item, dict))
         self.assertTrue('status' in item)
@@ -82,7 +82,7 @@ class TestMaltiverse(unittest.TestCase):
           "type": "hostname",
         }
         item = m.hostname_put(hostname_dict)
-        print item
+        print(item)
         self.assertTrue(isinstance(str(item), str))
         self.assertTrue(isinstance(item, dict))
         self.assertTrue('status' in item)
@@ -93,7 +93,7 @@ class TestMaltiverse(unittest.TestCase):
         time.sleep(2)
 
         item = m.hostname_delete(hostname_dict['hostname'])
-        print item
+        print(item)
         self.assertTrue(isinstance(str(item), str))
         self.assertTrue(isinstance(item, dict))
         self.assertTrue('status' in item)
@@ -126,7 +126,7 @@ class TestMaltiverse(unittest.TestCase):
           "url": "http://www.test.com/test.php"
         }
         item = m.url_put(url_dict)
-        print item
+        print(item)
         self.assertTrue(isinstance(str(item), str))
         self.assertTrue(isinstance(item, dict))
         self.assertTrue('status' in item)
@@ -137,7 +137,7 @@ class TestMaltiverse(unittest.TestCase):
         time.sleep(2)
 
         item = m.url_delete(url_dict['url'])
-        print item
+        print(item)
         self.assertTrue(isinstance(str(item), str))
         self.assertTrue(isinstance(item, dict))
         self.assertTrue('status' in item)
@@ -174,7 +174,7 @@ class TestMaltiverse(unittest.TestCase):
           "type": "sample"
         }
         item = m.sample_put(sample_dict)
-        print item
+        print(item)
         self.assertTrue(isinstance(str(item), str))
         self.assertTrue(isinstance(item, dict))
         self.assertTrue('status' in item)
@@ -185,7 +185,7 @@ class TestMaltiverse(unittest.TestCase):
         time.sleep(2)
 
         item = m.sample_delete(sample_dict['sha256'])
-        print item
+        print(item)
         self.assertTrue(isinstance(str(item), str))
         self.assertTrue(isinstance(item, dict))
         self.assertTrue('status' in item)
@@ -242,11 +242,11 @@ class TestMaltiverse(unittest.TestCase):
    def test_search(self):
         """ Test that performs search into the platform"""
         m = Maltiverse()
-        print m.login(email=self.email, password=self.password)
+        print(m.login(email=self.email, password=self.password))
         item = m.search('country_code:"CN"', fr=0, size=2)
         self.assertTrue(isinstance(str(item), str))
         self.assertTrue(isinstance(item, dict))
-        print len(item['hits']['hits'])
+        print(len(item['hits']['hits']))
 
 if __name__ == '__main__':
     unittest.main()
