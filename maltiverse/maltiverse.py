@@ -149,19 +149,19 @@ class Maltiverse(object):
 
     def url_get(self, url):
         ''' Requests a url '''
-        urlchecksum = hashlib.sha256(url).hexdigest()
+        urlchecksum = hashlib.sha256(url.encode('utf-8')).hexdigest()
         r = self.get('/url/' + urlchecksum)
         return json.loads(r.text)
 
     def url_put(self, url_dict):
         ''' Inserts a new url observable. If it exists, the document is merged and stored. Requires authentication as admin'''
-        urlchecksum = hashlib.sha256(url_dict['url']).hexdigest()
+        urlchecksum = hashlib.sha256(url_dict['url'].encode('utf-8')).hexdigest()
         r = self.put('/url/' + urlchecksum, params=url_dict)
         return json.loads(r.text)
 
     def url_delete(self, url):
         ''' Deletes url observable. Requires authentication as admin'''
-        urlchecksum = hashlib.sha256(url).hexdigest()
+        urlchecksum = hashlib.sha256(url.encode('utf-8')).hexdigest()
         r = self.delete('/url/' + urlchecksum)
         return json.loads(r.text)
 
