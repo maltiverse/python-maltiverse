@@ -11,5 +11,5 @@ setup(
     download_url='https://github.com/maltiverse/maltiverse-python',
     keywords=['maltiverse', 'API', 'threat intelligence', 'IoC', 'blacklist', 'search engine'],
     classifiers=[],
-    requires=['requests', 'PyJWT', 'unittest']
+    requires=['requests', 'PyJWT']
 )
