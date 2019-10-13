@@ -1,6 +1,3 @@
 requests
 PyJWT
-base64
-json
 unittest
-time
