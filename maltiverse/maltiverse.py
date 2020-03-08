@@ -153,6 +153,11 @@ class Maltiverse(object):
         r = self.get('/url/' + urlchecksum)
         return json.loads(r.text)
 
+    def url_get_by_checksum(self, urlchecksum):
+        ''' Requests a url by its sha256 checksum '''
+        r = self.get('/url/' + urlchecksum)
+        return json.loads(r.text)
+
     def url_put(self, url_dict):
         ''' Inserts a new url observable. If it exists, the document is merged and stored. Requires authentication as admin'''
         urlchecksum = hashlib.sha256(url_dict['url'].encode('utf-8')).hexdigest()
