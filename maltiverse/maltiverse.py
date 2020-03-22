@@ -1,12 +1,10 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-
 import json
 import requests
 import hashlib
 import jwt
-
 import base64
 
 
