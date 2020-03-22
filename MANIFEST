@@ -3,3 +3,4 @@ setup.cfg
 setup.py
 maltiverse/__init__.py
 maltiverse/maltiverse.py
+maltiverse/test_maltiverse.py
