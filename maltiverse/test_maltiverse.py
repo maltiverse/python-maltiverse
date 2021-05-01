@@ -11,8 +11,8 @@ class TestMaltiverse(unittest.TestCase):
      """Test for Maltiverse class"""
      def __init__(self, *args, **kwargs):
           super(TestMaltiverse, self).__init__(*args, **kwargs)
-          self.email = "root@maltiverse.com"
-          self.password = "qjyJojbEWzqRAK4mDJKfSHTmfKU7JBWWEUc"
+          self.email = "foo@mail.com"
+          self.password = "fakepasswd"
     
 
      def test_login(self):
