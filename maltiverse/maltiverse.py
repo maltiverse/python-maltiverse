@@ -71,7 +71,11 @@ class Maltiverse(object):
             if r_json['auth_token']:
 
                 self.auth_token = r_json['auth_token']
-                decoded_payload = jwt.decode(self.auth_token, verify=False)
+                decoded_payload = jwt.decode(
+                    self.auth_token,
+                    verify=False,
+                    algorithms=["HS256"]
+                )
                 self.sub = decoded_payload['sub']
                 self.team_name = decoded_payload['team_name']
                 self.team_researcher = decoded_payload['team_researcher']
