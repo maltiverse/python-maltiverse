@@ -71,7 +71,7 @@ class Maltiverse(object):
             if r_json['auth_token']:
 
                 self.auth_token = str(r_json['auth_token'])
-                decoded_payload = jwt.get_unverified_header(self.auth_token)
+                decoded_payload = jwt.decode(self.auth_token, options={"verify_signature": False})
                 self.sub = decoded_payload['sub']
                 self.team_name = decoded_payload['team_name']
                 self.team_researcher = decoded_payload['team_researcher']
