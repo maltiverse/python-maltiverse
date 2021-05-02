@@ -15,8 +15,6 @@ class Maltiverse(object):
         self.team_name = None
         self.team_researcher = None
         self.admin = None
-        if auth_token:
-            self.headers['Authorization'] = 'Bearer ' + auth_token
 
     def prepare_put_payload(self, params):
         '''Auxiliar method to perform PUT requests to the platform'''
