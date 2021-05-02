@@ -283,13 +283,15 @@ class Maltiverse(object):
         if format:
             params['format'] = format
 
+        headers={
+            'Accept': 'application/json',
+        }
+        if self.auth_token:
+            headers['Authorization'] = 'Bearer ' + self.auth_token
         r = requests.get(
             self.endpoint + '/search',
             params=params,
-            headers={
-                'Accept': 'application/json',
-                'Authorization': 'Bearer ' + self.auth_token
-            }
+            headers=headers
         )
 
         return json.loads(r.text)
