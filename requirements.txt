@@ -1,2 +1,2 @@
 requests
-PyJWT==2.1.0
+PyJWT==2.4.0
