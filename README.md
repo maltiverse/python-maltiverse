@@ -12,7 +12,7 @@ https://app.swaggerhub.com/apis-docs/maltiverse/api/1.0.0-oas3
 ## [1 - Installation](#table-of-contents)
 
 ```
-pip install git+https://github.com/maltiverse/python-maltiverse
+pip install maltiverse
 ```
 
 
