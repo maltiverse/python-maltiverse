@@ -1,2 +1,3 @@
 from .maltiverse import Maltiverse
-__all__ = ['Maltiverse']
+
+__all__ = ["Maltiverse"]
