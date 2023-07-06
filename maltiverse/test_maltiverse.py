@@ -3,7 +3,6 @@
 
 
 import unittest
-import json
 from maltiverse import Maltiverse
 import time
 

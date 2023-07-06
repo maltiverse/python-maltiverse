@@ -16,6 +16,10 @@ class Maltiverse(object):
         self.team_researcher = None
         self.admin = None
 
+        self._default_headers = {"Accept": "application/json"}
+        if self.auth_token:
+            self._default_headers.update({"Authorization": f"Bearer {self.auth_token}"})
+
     def prepare_put_payload(self, params):
         """Auxiliar method to perform PUT requests to the platform"""
         if self.team_researcher and not self.admin:
@@ -55,15 +59,14 @@ class Maltiverse(object):
         return json.dumps(params)
 
     def login(self, email, password):
-        r = requests.post(
+        r_json = requests.post(
             self.endpoint + "/auth/login",
             data=json.dumps({"email": email, "password": password}),
             headers={
                 "Content-Type": "application/json",
                 "Accept": "application/json",
             },
-        )
-        r_json = json.loads(r.text)
+        ).json()
 
         if "status" in r_json and r_json["status"] == "success":
             if r_json["auth_token"]:
@@ -81,164 +84,125 @@ class Maltiverse(object):
 
     def ip_get(self, ip_addr):
         """Requests an IP address"""
-        headers = {
-            "Accept": "application/json",
-        }
-        if self.auth_token:
-            headers["Authorization"] = "Bearer " + self.auth_token
-        r = requests.get(self.endpoint + "/ip/" + ip_addr, headers=headers)
-        return json.loads(r.text)
+        return requests.get(
+            f"{self.endpoint}/ip/{ip_addr}", headers=self._default_headers
+        ).json()
 
     def ip_put(self, ip_dict):
-        """Inserts a new Ip address observable. If it exists, the document is merged and stored. Requires authentication as admin"""
-        r = requests.put(
-            self.endpoint + "/ip/" + ip_dict["ip_addr"],
+        """Inserts a new Ip address observable.
+
+        If it exists, the document is merged and stored.
+        Requires authentication as admin
+        """
+        return requests.put(
+            f"{self.endpoint}/ip/{ip_dict['ip_addr']}",
             data=self.prepare_put_payload(ip_dict),
-            headers={
-                "Accept": "application/json",
-                "Content-Type": "application/json",
-                "Authorization": "Bearer " + self.auth_token,
-            },
-        )
-        return json.loads(r.text)
+            headers=dict(self._default_headers, **{"Content-Type": "application/json"}),
+        ).json()
 
     def ip_delete(self, ip_addr):
         """Deletes Ip address observable. Requires authentication as admin"""
-        r = requests.delete(
-            self.endpoint + "/ip/" + ip_addr,
-            headers={
-                "Accept": "application/json",
-                "Authorization": "Bearer " + self.auth_token,
-            },
-        )
-        return json.loads(r.text)
+        return requests.delete(
+            f"{self.endpoint}/ip/{ip_addr}", headers=self._default_headers
+        ).json()
 
     def hostname_get(self, hostname):
         """Requests a hostname"""
-        headers = {
-            "Accept": "application/json",
-        }
-        if self.auth_token:
-            headers["Authorization"] = "Bearer " + self.auth_token
-        r = requests.get(self.endpoint + "/hostname/" + hostname, headers=headers)
-        return json.loads(r.text)
+        return requests.get(
+            f"{self.endpoint}/hostname/{hostname}", headers=self._default_headers
+        ).json()
 
     def hostname_put(self, hostname_dict):
         """Inserts a new hostname observable. If it exists, the document is merged and stored. Requires authentication as admin"""
-        r = requests.put(
-            self.endpoint + "/hostname/" + hostname_dict["hostname"],
+        return requests.put(
+            f"{self.endpoint}/hostname/{hostname_dict['hostname']}",
             data=self.prepare_put_payload(hostname_dict),
-            headers={
-                "Accept": "application/json",
-                "Content-Type": "application/json",
-                "Authorization": "Bearer " + self.auth_token,
-            },
-        )
-        return json.loads(r.text)
+            headers=dict(self._default_headers, **{"Content-Type": "application/json"}),
+        ).json()
 
     def hostname_delete(self, hostname):
         """Deletes hostname observable. Requires authentication as admin"""
-        r = requests.delete(
-            self.endpoint + "/hostname/" + hostname,
-            headers={
-                "Accept": "application/json",
-                "Authorization": "Bearer " + self.auth_token,
-            },
-        )
-        return json.loads(r.text)
+        return requests.delete(
+            f"{self.endpoint}/hostname/{hostname}", headers=self._default_headers
+        ).json()
 
     def url_get(self, url):
         """Requests a url"""
         urlchecksum = hashlib.sha256(url.encode("utf-8")).hexdigest()
-        headers = {
-            "Accept": "application/json",
-        }
-        if self.auth_token:
-            headers["Authorization"] = "Bearer " + self.auth_token
-        r = requests.get(self.endpoint + "/url/" + urlchecksum, headers=headers)
-        return json.loads(r.text)
+        return requests.get(
+            f"{self.endpoint}/url/{urlchecksum}", headers=self._default_headers
+        ).json()
 
     def url_get_by_checksum(self, urlchecksum):
         """Requests a url by its sha256 checksum"""
-        headers = {
-            "Accept": "application/json",
-        }
-        if self.auth_token:
-            headers["Authorization"] = "Bearer " + self.auth_token
-        r = requests.get(self.endpoint + "/url/" + urlchecksum, headers=headers)
-        return json.loads(r.text)
+        return requests.get(
+            f"{self.endpoint}/url/{urlchecksum}", headers=self._default_headers
+        ).json()
 
     def url_put(self, url_dict):
         """Inserts a new url observable. If it exists, the document is merged and stored. Requires authentication as admin"""
         urlchecksum = hashlib.sha256(url_dict["url"].encode("utf-8")).hexdigest()
-        r = requests.put(
-            self.endpoint + "/url/" + urlchecksum,
+        return requests.put(
+            f"{self.endpoint}/url/{urlchecksum}",
             data=self.prepare_put_payload(url_dict),
-            headers={
-                "Accept": "application/json",
-                "Content-Type": "application/json",
-                "Authorization": "Bearer " + self.auth_token,
-            },
-        )
-        return json.loads(r.text)
+            headers=dict(self._default_headers, **{"Content-Type": "application/json"}),
+        ).json()
 
     def url_delete(self, url):
         """Deletes url observable. Requires authentication as admin"""
         urlchecksum = hashlib.sha256(url.encode("utf-8")).hexdigest()
-        r = requests.delete(
-            self.endpoint + "/url/" + urlchecksum,
-            headers={
-                "Accept": "application/json",
-                "Authorization": "Bearer " + self.auth_token,
-            },
-        )
-        return json.loads(r.text)
+        return requests.delete(
+            f"{self.endpoint}/url/{urlchecksum}",
+            headers=self._default_headers,
+        ).json()
 
-    def sample_get(self, sha256):
+    def sample_get(self, sample, algorithm="sha256"):
         """Requests a sample"""
-        headers = {
-            "Accept": "application/json",
+        mapping = {
+            "sha256": self.sample_get_by_sha256,
+            "md5": self.sample_get_by_md5,
+            "sha1": self.sample_get_by_sha1,
+            "sha512": self.sample_get_by_sha512,
         }
-        if self.auth_token:
-            headers["Authorization"] = "Bearer " + self.auth_token
-        r = requests.get(self.endpoint + "/sample/" + sha256, headers=headers)
-        return json.loads(r.text)
-
-    def sample_put(self, sample_dict):
-        """Inserts a new sample observable. If it exists, the document is merged and stored. Requires authentication as admin"""
-        r = requests.put(
-            self.endpoint + "/sample/" + sample_dict["sha256"],
-            data=self.prepare_put_payload(sample_dict),
-            headers={
-                "Accept": "application/json",
-                "Content-Type": "application/json",
-                "Authorization": "Bearer " + self.auth_token,
-            },
-        )
-        return json.loads(r.text)
-
-    def sample_delete(self, sha256):
-        """Deletes sample observable. Requires authentication as admin"""
-        r = requests.delete(
-            self.endpoint + "/sample/" + sha256,
-            headers={
-                "Accept": "application/json",
-                "Authorization": "Bearer " + self.auth_token,
-            },
-        )
-        return json.loads(r.text)
+        return mapping.get(algorithm, mapping.get("sha256"))()
 
     def sample_get_by_md5(self, md5):
         """Requests a sample by MD5"""
-        headers = {
-            "Accept": "application/json",
-        }
-        if self.auth_token:
-            headers["Authorization"] = "Bearer " + self.auth_token
-        r = requests.get(
-            self.endpoint + '/search?query=md5:"' + md5 + '"', headers=headers
-        )
-        return json.loads(r.text)
+        return requests.get(
+            f"{self.endpoint}/sample/md5/{md5}", headers=self._default_headers
+        ).json()
+
+    def sample_get_by_sha1(self, sha1):
+        """Requests a sample by SHA1"""
+        return requests.get(
+            f"{self.endpoint}/sample/sha1/{sha1}", headers=self._default_headers
+        ).json()
+
+    def sample_get_by_sha256(self, sha256):
+        """Requests a sample by SHA256"""
+        return requests.get(
+            f"{self.endpoint}/sample/{sha256}", headers=self._default_headers
+        ).json()
+
+    def sample_get_by_sha512(self, sha512):
+        """Requests a sample by SHA512"""
+        return requests.get(
+            f"{self.endpoint}/sample/sha512/{sha512}", headers=self._default_headers
+        ).json()
+
+    def sample_put(self, sample_dict):
+        """Inserts a new sample observable. If it exists, the document is merged and stored. Requires authentication as admin"""
+        return requests.put(
+            f"{self.endpoint}/sample/{sample_dict['sha256']}",
+            data=self.prepare_put_payload(sample_dict),
+            headers=dict(self._default_headers, **{"Content-Type": "application/json"}),
+        ).json()
+
+    def sample_delete(self, sha256):
+        """Deletes sample observable. Requires authentication as admin"""
+        return requests.delete(
+            f"{self.endpoint}/sample/{sha256}", headers=self._default_headers
+        ).json()
 
     def search(
         self,
@@ -278,6 +242,7 @@ class Maltiverse(object):
         }
         if self.auth_token:
             headers["Authorization"] = "Bearer " + self.auth_token
-        r = requests.get(self.endpoint + "/search", params=params, headers=headers)
 
-        return json.loads(r.text)
+        return requests.get(
+            self.endpoint + "/search", params=params, headers=headers
+        ).json()
