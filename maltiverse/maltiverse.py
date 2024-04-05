@@ -164,7 +164,8 @@ class Maltiverse(object):
             "sha1": self.sample_get_by_sha1,
             "sha512": self.sample_get_by_sha512,
         }
-        return mapping.get(algorithm, mapping.get("sha256"))()
+        callable_function = mapping.get(algorithm, mapping.get("sha256"))
+        return callable_function(sample)
 
     def sample_get_by_md5(self, md5):
         """Requests a sample by MD5"""
