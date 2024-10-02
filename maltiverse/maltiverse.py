@@ -176,6 +176,14 @@ class Maltiverse:
         """Delete a sample observable."""
         return self._request("DELETE", f"{self.endpoint}/sample/{sha256}")
 
+    def feed_metadata_get(self, feed_id):
+        """Gets a feed metadata from Maltiverse given its Id."""
+        return self._request("GET", f"{self.endpoint}/feed/{feed_id}")
+
+    def feed_download(self, feed_id):
+        """Downloads a feed from Maltiverse given its ID."""
+        return self._request("GET", f"{self.endpoint}/feed/{feed_id}/download")
+
     def search(
         self,
         query,
