@@ -7,7 +7,7 @@ import hashlib
 import jwt
 
 
-class Maltiverse(object):
+class Maltiverse:
     def __init__(self, auth_token=None, endpoint="https://api.maltiverse.com"):
         self.endpoint = endpoint
         self.auth_token = auth_token
@@ -15,195 +15,166 @@ class Maltiverse(object):
         self.team_name = None
         self.team_researcher = None
         self.admin = None
+        self._default_headers = self._create_headers()
 
-        self._default_headers = {"Accept": "application/json"}
+    def _create_headers(self):
+        """Create default headers with or without authentication token."""
+        headers = {"Accept": "application/json"}
         if self.auth_token:
-            self._default_headers.update({"Authorization": f"Bearer {self.auth_token}"})
+            headers["Authorization"] = f"Bearer {self.auth_token}"
+        return headers
+
+    def _update_headers(self, additional_headers):
+        """Update headers with additional headers provided."""
+        return {**self._default_headers, **additional_headers}
 
     def prepare_put_payload(self, params):
-        """Auxiliar method to perform PUT requests to the platform"""
-        if self.team_researcher and not self.admin:
-            # Adding required information to push info being a researcher.
-            if "blacklist" in params:
-                # Is not allowed to specify dates
-                if "creation_time" in params:
-                    params.pop("creation_time", None)
-                if "modification_time" in params:
-                    params.pop("modification_time", None)
-
-                if "domain" in params:
-                    params.pop("domain", None)
-
-                if "urlchecksum" in params:
-                    params.pop("urlchecksum", None)
-
-                if "tld" in params:
-                    params.pop("tld", None)
-
-                if "type" in params:
-                    params.pop("type", None)
-
-                for i, bl in enumerate(params["blacklist"]):
-                    # Must set the ref
-                    params["blacklist"][i]["ref"] = self.sub
-
-                    # Must set the team name as the Blacklist source
-                    params["blacklist"][i]["source"] = self.team_name
-
-                    # Is not allowed to specify dates
-                    if "first_seen" in params["blacklist"][i]:
-                        params["blacklist"][i].pop("first_seen", None)
-                    if "last_seen" in params["blacklist"][i]:
-                        params["blacklist"][i].pop("last_seen", None)
-
+        """Prepare the payload for PUT requests, removing fields based on user permissions."""
+        if self.team_researcher and not self.admin and "blacklist" in params:
+            self._sanitize_blacklist(params)
         return json.dumps(params)
 
+    def _sanitize_blacklist(self, params):
+        """Clean restricted fields and add required information to the blacklist."""
+        restricted_fields = [
+            "creation_time",
+            "modification_time",
+            "domain",
+            "urlchecksum",
+            "tld",
+            "type",
+        ]
+        for field in restricted_fields:
+            params.pop(field, None)
+
+        for bl_item in params.get("blacklist", []):
+            bl_item["ref"] = self.sub
+            bl_item["source"] = self.team_name
+            bl_item.pop("first_seen", None)
+            bl_item.pop("last_seen", None)
+
     def login(self, email, password):
-        r_json = requests.post(
-            self.endpoint + "/auth/login",
+        """Logs in and stores the authentication token and user details."""
+        response = requests.post(
+            f"{self.endpoint}/auth/login",
             data=json.dumps({"email": email, "password": password}),
-            headers={
-                "Content-Type": "application/json",
-                "Accept": "application/json",
-            },
+            headers=self._update_headers({"Content-Type": "application/json"}),
         ).json()
 
-        if "status" in r_json and r_json["status"] == "success":
-            if r_json["auth_token"]:
-                self.auth_token = str(r_json["auth_token"])
-                decoded_payload = jwt.decode(
-                    self.auth_token, options={"verify_signature": False}
-                )
-                self.sub = decoded_payload["sub"]
-                self.team_name = decoded_payload["team_name"]
-                self.team_researcher = decoded_payload["team_researcher"]
-                self.admin = decoded_payload["admin"]
-                return True
-
+        if response.get("status") == "success" and "auth_token" in response:
+            self.auth_token = response["auth_token"]
+            self._default_headers = self._create_headers()
+            self._decode_token()
+            return True
         raise Exception("Login Failed")
 
+    def _decode_token(self):
+        """Decodes the JWT token and stores user details."""
+        decoded_payload = jwt.decode(
+            self.auth_token, options={"verify_signature": False}
+        )
+        self.sub = decoded_payload.get("sub")
+        self.team_name = decoded_payload.get("team_name")
+        self.team_researcher = decoded_payload.get("team_researcher")
+        self.admin = decoded_payload.get("admin")
+
+    def _request(self, method, url, headers=None, **kwargs):
+        """Make an HTTP request with the specified method."""
+        headers = headers or self._default_headers
+        return requests.request(method, url, headers=headers, **kwargs).json()
+
     def ip_get(self, ip_addr):
-        """Requests an IP address"""
-        return requests.get(
-            f"{self.endpoint}/ip/{ip_addr}", headers=self._default_headers
-        ).json()
+        """Fetch information for a given IP address."""
+        return self._request("GET", f"{self.endpoint}/ip/{ip_addr}")
 
     def ip_put(self, ip_dict):
-        """Inserts a new Ip address observable.
-
-        If it exists, the document is merged and stored.
-        Requires authentication as admin
-        """
-        return requests.put(
+        """Update or insert an IP address observable."""
+        return self._request(
+            "PUT",
             f"{self.endpoint}/ip/{ip_dict['ip_addr']}",
+            headers=self._update_headers({"Content-Type": "application/json"}),
             data=self.prepare_put_payload(ip_dict),
-            headers=dict(self._default_headers, **{"Content-Type": "application/json"}),
-        ).json()
+        )
 
     def ip_delete(self, ip_addr):
-        """Deletes Ip address observable. Requires authentication as admin"""
-        return requests.delete(
-            f"{self.endpoint}/ip/{ip_addr}", headers=self._default_headers
-        ).json()
+        """Delete an IP address observable."""
+        return self._request("DELETE", f"{self.endpoint}/ip/{ip_addr}")
 
     def hostname_get(self, hostname):
-        """Requests a hostname"""
-        return requests.get(
-            f"{self.endpoint}/hostname/{hostname}", headers=self._default_headers
-        ).json()
+        """Fetch information for a given hostname."""
+        return self._request("GET", f"{self.endpoint}/hostname/{hostname}")
 
     def hostname_put(self, hostname_dict):
-        """Inserts a new hostname observable. If it exists, the document is merged and stored. Requires authentication as admin"""
-        return requests.put(
+        """Update or insert a hostname observable."""
+        return self._request(
+            "PUT",
             f"{self.endpoint}/hostname/{hostname_dict['hostname']}",
+            headers=self._update_headers({"Content-Type": "application/json"}),
             data=self.prepare_put_payload(hostname_dict),
-            headers=dict(self._default_headers, **{"Content-Type": "application/json"}),
-        ).json()
+        )
 
     def hostname_delete(self, hostname):
-        """Deletes hostname observable. Requires authentication as admin"""
-        return requests.delete(
-            f"{self.endpoint}/hostname/{hostname}", headers=self._default_headers
-        ).json()
+        """Delete a hostname observable."""
+        return self._request("DELETE", f"{self.endpoint}/hostname/{hostname}")
 
     def url_get(self, url):
-        """Requests a url"""
+        """Fetch information for a given URL."""
         urlchecksum = hashlib.sha256(url.encode("utf-8")).hexdigest()
-        return requests.get(
-            f"{self.endpoint}/url/{urlchecksum}", headers=self._default_headers
-        ).json()
+        return self._request("GET", f"{self.endpoint}/url/{urlchecksum}")
 
     def url_get_by_checksum(self, urlchecksum):
-        """Requests a url by its sha256 checksum"""
-        return requests.get(
-            f"{self.endpoint}/url/{urlchecksum}", headers=self._default_headers
-        ).json()
+        """Fetch a URL by its SHA256 checksum."""
+        return self._request("GET", f"{self.endpoint}/url/{urlchecksum}")
 
     def url_put(self, url_dict):
-        """Inserts a new url observable. If it exists, the document is merged and stored. Requires authentication as admin"""
+        """Update or insert a URL observable."""
         urlchecksum = hashlib.sha256(url_dict["url"].encode("utf-8")).hexdigest()
-        return requests.put(
+        return self._request(
+            "PUT",
             f"{self.endpoint}/url/{urlchecksum}",
+            headers=self._update_headers({"Content-Type": "application/json"}),
             data=self.prepare_put_payload(url_dict),
-            headers=dict(self._default_headers, **{"Content-Type": "application/json"}),
-        ).json()
+        )
 
     def url_delete(self, url):
-        """Deletes url observable. Requires authentication as admin"""
+        """Delete a URL observable."""
         urlchecksum = hashlib.sha256(url.encode("utf-8")).hexdigest()
-        return requests.delete(
-            f"{self.endpoint}/url/{urlchecksum}",
-            headers=self._default_headers,
-        ).json()
+        return self._request("DELETE", f"{self.endpoint}/url/{urlchecksum}")
 
     def sample_get(self, sample, algorithm="sha256"):
-        """Requests a sample"""
-        mapping = {
-            "sha256": self.sample_get_by_sha256,
+        """Fetch a sample using a hash algorithm (MD5, SHA1, SHA256, SHA512)."""
+        hash_methods = {
             "md5": self.sample_get_by_md5,
             "sha1": self.sample_get_by_sha1,
+            "sha256": self.sample_get_by_sha256,
             "sha512": self.sample_get_by_sha512,
         }
-        callable_function = mapping.get(algorithm, mapping.get("sha256"))
-        return callable_function(sample)
+        return hash_methods.get(algorithm, self.sample_get_by_sha256)(sample)
 
     def sample_get_by_md5(self, md5):
-        """Requests a sample by MD5"""
-        return requests.get(
-            f"{self.endpoint}/sample/md5/{md5}", headers=self._default_headers
-        ).json()
+        return self._request("GET", f"{self.endpoint}/sample/md5/{md5}")
 
     def sample_get_by_sha1(self, sha1):
-        """Requests a sample by SHA1"""
-        return requests.get(
-            f"{self.endpoint}/sample/sha1/{sha1}", headers=self._default_headers
-        ).json()
+        return self._request("GET", f"{self.endpoint}/sample/sha1/{sha1}")
 
     def sample_get_by_sha256(self, sha256):
-        """Requests a sample by SHA256"""
-        return requests.get(
-            f"{self.endpoint}/sample/{sha256}", headers=self._default_headers
-        ).json()
+        return self._request("GET", f"{self.endpoint}/sample/{sha256}")
 
     def sample_get_by_sha512(self, sha512):
-        """Requests a sample by SHA512"""
-        return requests.get(
-            f"{self.endpoint}/sample/sha512/{sha512}", headers=self._default_headers
-        ).json()
+        return self._request("GET", f"{self.endpoint}/sample/sha512/{sha512}")
 
     def sample_put(self, sample_dict):
-        """Inserts a new sample observable. If it exists, the document is merged and stored. Requires authentication as admin"""
-        return requests.put(
+        """Update or insert a sample observable."""
+        return self._request(
+            "PUT",
             f"{self.endpoint}/sample/{sample_dict['sha256']}",
+            headers=self._update_headers({"Content-Type": "application/json"}),
             data=self.prepare_put_payload(sample_dict),
-            headers=dict(self._default_headers, **{"Content-Type": "application/json"}),
-        ).json()
+        )
 
     def sample_delete(self, sha256):
-        """Deletes sample observable. Requires authentication as admin"""
-        return requests.delete(
-            f"{self.endpoint}/sample/{sha256}", headers=self._default_headers
-        ).json()
+        """Delete a sample observable."""
+        return self._request("DELETE", f"{self.endpoint}/sample/{sha256}")
 
     def search(
         self,
@@ -215,35 +186,15 @@ class Maltiverse(object):
         range_field=None,
         format=None,
     ):
-        """Performs a search into the Maltiverse platform."""
-        params = dict()
-
-        params["query"] = query
-
-        if fr is not None:
-            params["from"] = fr
-
-        if size is not None:
-            params["size"] = size
-
-        if sort:
-            params["sort"] = sort
-
-        if range:
-            params["range"] = range
-
-        if range_field:
-            params["range_field"] = range_field
-
-        if format:
-            params["format"] = format
-
-        headers = {
-            "Accept": "application/json",
+        """Perform a search on the Maltiverse platform."""
+        params = {
+            "query": query,
+            "from": fr,
+            "size": size,
+            "sort": sort,
+            "range": range,
+            "range_field": range_field,
+            "format": format,
         }
-        if self.auth_token:
-            headers["Authorization"] = "Bearer " + self.auth_token
-
-        return requests.get(
-            self.endpoint + "/search", params=params, headers=headers
-        ).json()
+        params = {k: v for k, v in params.items() if v is not None}
+        return self._request("GET", f"{self.endpoint}/search", params=params)
