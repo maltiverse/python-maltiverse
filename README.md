@@ -74,7 +74,7 @@ result = api.ip_get("110.189.222.98")
 print(json.dumps(result, indent=4, sort_keys=True))
 ```
 
-Sample output:
+Simplified output:
 
 ```json
 {
@@ -115,7 +115,7 @@ result = api.hostname_get("59022.flatblastard.com")
 print(json.dumps(result, indent=4, sort_keys=True))
 ```
 
-Sample output:
+Simplified output:
 
 ```json
 {
@@ -148,7 +148,7 @@ result = api.url_get("https://alleom.com/weqmo")
 print(json.dumps(result, indent=4, sort_keys=True))
 ```
 
-Sample output:
+Simplified output:
 
 ```json
 {
@@ -195,7 +195,7 @@ result = api.sample_get_md5("e09f2eaebc86f54b48e4fb5101454535")
 print(json.dumps(result, indent=4, sort_keys=True))
 ```
 
-Sample output:
+Simplified output:
 
 ```json
 {
@@ -217,9 +217,11 @@ Sample output:
 
 #### 2.6.1 Retrieve Feed Data
 
-You can retrieve feed metadata or download a specific feed from Maltiverse.
+Maltiverse allows you to retrieve feed data and metadata. These feeds contain lists of threat indicators such as IPs, hostnames, URLs, or hashes.
 
-To download a specific feed:
+##### Download a specific feed
+
+To download a specific feed, such as a *Command & Control* (C&C) feed, you can use the following Python example:
 
 ```python
 import json
@@ -230,4 +232,45 @@ result = api.feed_download("VdhZV34B4jHUXfKt_gDi")  # Command & Control feed
 print(json.dumps(result, indent=4))
 ```
 
-The result contains details of the selected feed.
+This code downloads the full content of the selected feed. The result contains a complete list of indicators (IPs, hostnames, URLs, or hashes)
+
+
+##### Retrieve feed metadata
+
+To get metadata information for a specific feed, such as its description, author, number of indicators, and more, use the following code:
+
+```python
+import json
+from maltiverse import Maltiverse
+
+api = Maltiverse()
+result = api.feed_metadata_get("VdhZV34B4jHUXfKt_gDi")  # Command & Control feed
+print(json.dumps(result, indent=4))
+```
+
+This code provides detailed information about the feed, including the types of indicators it contains, the creation date, the author, and the number of downloads to date.
+
+Simplified output:
+
+```json
+{
+  "access": "public",
+  "author": "Maltiverse",
+  "count_hostname": 21375,
+  "count_ipv4": 1756,
+  "count_sample": 0,
+  "count_url": 1057,
+  "creation_time": "2022-01-14 06:50:22",
+  "description": "This feed allocates all the alive Command & Controls from different RAT's and Botnets. It generates low noise when used with border log sources like firewalls.",
+  "downloads": 5233686,
+  "name": "Command and Controls",
+  "query": "is_cnc:true AND classification:malicious",
+  "range": "now-30d",
+  "range_field": "modification_time",
+  "tag": [
+    "feed",
+    "package:firewall",
+    "package:siem"
+  ],
+}
+```
