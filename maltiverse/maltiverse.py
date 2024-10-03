@@ -70,13 +70,14 @@ class Maltiverse:
 
     def _decode_token(self):
         """Decodes the JWT token and stores user details."""
-        decoded_payload = jwt.decode(
-            self.auth_token, options={"verify_signature": False}
-        )
-        self.sub = decoded_payload.get("sub")
-        self.team_name = decoded_payload.get("team_name")
-        self.team_researcher = decoded_payload.get("team_researcher")
-        self.admin = decoded_payload.get("admin")
+        if self.auth_token:
+            decoded_payload = jwt.decode(
+                self.auth_token, options={"verify_signature": False}
+            )
+            self.sub = decoded_payload.get("sub")
+            self.team_name = decoded_payload.get("team_name")
+            self.team_researcher = decoded_payload.get("team_researcher")
+            self.admin = decoded_payload.get("admin")
 
     def _request(self, method, url, headers=None, **kwargs):
         """Make an HTTP request with the specified method."""
