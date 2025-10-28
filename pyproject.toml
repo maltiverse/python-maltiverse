@@ -3,6 +3,7 @@ name = "maltiverse"
 version = "1.2.4"
 authors = [
   { name="Antonio Gomez", email="antonio.gomez@maltiverse.com" },
+  { name="David Gil", email="david.gil@maltiverse.com" },
   { name="Jorge Lopez", email="jorge.lopez@maltiverse.com" },
   { name="Developers", email="dev@maltiverse.com" },
 ]
