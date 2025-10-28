@@ -216,4 +216,3 @@ class Maltiverse:
         }
         params = {k: v for k, v in params.items() if v is not None}
         return self._request("GET", f"{self.endpoint}/search", params=params)
-        return self._request("GET", f"{self.endpoint}/search", params=params)
