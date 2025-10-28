@@ -1,10 +1,11 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import json
-import requests
 import hashlib
+import json
+
 import jwt
+import requests
 
 
 class Maltiverse:
@@ -176,6 +177,23 @@ class Maltiverse:
         """Delete a sample observable."""
         return self._request("DELETE", f"{self.endpoint}/sample/{sha256}")
 
+    def email_get(self, email_address):
+        """Fetch information for a given email address."""
+        return self._request("GET", f"{self.endpoint}/email/{email_address}")
+
+    def email_put(self, email_dict):
+        """Update or insert an email address observable."""
+        return self._request(
+            "PUT",
+            f"{self.endpoint}/email/{email_dict['email_address']}",
+            headers=self._update_headers({"Content-Type": "application/json"}),
+            data=self.prepare_put_payload(email_dict),
+        )
+
+    def email_delete(self, email_address):
+        """Delete an IP address observable."""
+        return self._request("DELETE", f"{self.endpoint}/email/{email_address}")
+
     def search(
         self,
         query,
@@ -197,4 +215,5 @@ class Maltiverse:
             "format": format,
         }
         params = {k: v for k, v in params.items() if v is not None}
+        return self._request("GET", f"{self.endpoint}/search", params=params)
         return self._request("GET", f"{self.endpoint}/search", params=params)

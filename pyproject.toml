@@ -1,0 +1,32 @@
+[project]
+name = "maltiverse"
+version = "1.2.4"
+authors = [
+  { name="Antonio Gomez", email="antonio.gomez@maltiverse.com" },
+  { name="Jorge Lopez", email="jorge.lopez@maltiverse.com" },
+  { name="Developers", email="dev@maltiverse.com" },
+]
+description = "Wrapper for the Maltiverse API"
+readme = "README.md"
+requires-python = ">=3.7"
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Build Tools",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+]
+dependencies = [
+  "requests",
+  "PyJWT"
+]
+license = {file = "LICENSE"}
+[project.urls]
+"Homepage" = "https://github.com/maltiverse/python-maltiverse"
+"Bug Tracker" = "https://github.com/maltiverse/python-maltiverse/issues"
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
