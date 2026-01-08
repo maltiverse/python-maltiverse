@@ -8,7 +8,6 @@ import typing as t
 import jwt
 import requests
 
-
 T_AdminIndexScope = t.Literal["open", "restricted", "sandbox"]
 
 
