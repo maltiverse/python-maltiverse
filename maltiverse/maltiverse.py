@@ -3,9 +3,13 @@
 
 import hashlib
 import json
+import typing as t
 
 import jwt
 import requests
+
+
+T_AdminIndexScope = t.Literal["open", "restricted", "sandbox"]
 
 
 class Maltiverse:
@@ -29,8 +33,17 @@ class Maltiverse:
         """Update headers with additional headers provided."""
         return {**self._default_headers, **additional_headers}
 
-    def prepare_put_payload(self, params):
-        """Prepare the payload for PUT requests, removing fields based on user permissions."""
+    def prepare_put_payload(self, params, index_scope: T_AdminIndexScope = "open"):
+        """Prepare the payload for PUT requests, removing fields based on user permissions.
+
+        Note: index_scope is only applied when the authenticated user is an admin.
+        """
+        if (
+            self.admin
+            and "index_scope" not in params
+            and index_scope is not None
+        ):
+            params["index_scope"] = index_scope
         if self.team_researcher and not self.admin and "blacklist" in params:
             self._sanitize_blacklist(params)
         return json.dumps(params)
@@ -88,13 +101,13 @@ class Maltiverse:
         """Fetch information for a given IP address."""
         return self._request("GET", f"{self.endpoint}/ip/{ip_addr}")
 
-    def ip_put(self, ip_dict):
+    def ip_put(self, ip_dict, index_scope: T_AdminIndexScope = "open"):
         """Update or insert an IP address observable."""
         return self._request(
             "PUT",
             f"{self.endpoint}/ip/{ip_dict['ip_addr']}",
             headers=self._update_headers({"Content-Type": "application/json"}),
-            data=self.prepare_put_payload(ip_dict),
+            data=self.prepare_put_payload(ip_dict, index_scope=index_scope),
         )
 
     def ip_delete(self, ip_addr):
@@ -105,13 +118,13 @@ class Maltiverse:
         """Fetch information for a given hostname."""
         return self._request("GET", f"{self.endpoint}/hostname/{hostname}")
 
-    def hostname_put(self, hostname_dict):
+    def hostname_put(self, hostname_dict, index_scope: T_AdminIndexScope = "open"):
         """Update or insert a hostname observable."""
         return self._request(
             "PUT",
             f"{self.endpoint}/hostname/{hostname_dict['hostname']}",
             headers=self._update_headers({"Content-Type": "application/json"}),
-            data=self.prepare_put_payload(hostname_dict),
+            data=self.prepare_put_payload(hostname_dict, index_scope=index_scope),
         )
 
     def hostname_delete(self, hostname):
@@ -127,14 +140,14 @@ class Maltiverse:
         """Fetch a URL by its SHA256 checksum."""
         return self._request("GET", f"{self.endpoint}/url/{urlchecksum}")
 
-    def url_put(self, url_dict):
+    def url_put(self, url_dict, index_scope: T_AdminIndexScope = "open"):
         """Update or insert a URL observable."""
         urlchecksum = hashlib.sha256(url_dict["url"].encode("utf-8")).hexdigest()
         return self._request(
             "PUT",
             f"{self.endpoint}/url/{urlchecksum}",
             headers=self._update_headers({"Content-Type": "application/json"}),
-            data=self.prepare_put_payload(url_dict),
+            data=self.prepare_put_payload(url_dict, index_scope=index_scope),
         )
 
     def url_delete(self, url):
@@ -164,13 +177,13 @@ class Maltiverse:
     def sample_get_by_sha512(self, sha512):
         return self._request("GET", f"{self.endpoint}/sample/sha512/{sha512}")
 
-    def sample_put(self, sample_dict):
+    def sample_put(self, sample_dict, index_scope: T_AdminIndexScope = "open"):
         """Update or insert a sample observable."""
         return self._request(
             "PUT",
             f"{self.endpoint}/sample/{sample_dict['sha256']}",
             headers=self._update_headers({"Content-Type": "application/json"}),
-            data=self.prepare_put_payload(sample_dict),
+            data=self.prepare_put_payload(sample_dict, index_scope=index_scope),
         )
 
     def sample_delete(self, sha256):
@@ -181,13 +194,13 @@ class Maltiverse:
         """Fetch information for a given email address."""
         return self._request("GET", f"{self.endpoint}/email/{email_address}")
 
-    def email_put(self, email_dict):
+    def email_put(self, email_dict, index_scope: T_AdminIndexScope = "open"):
         """Update or insert an email address observable."""
         return self._request(
             "PUT",
             f"{self.endpoint}/email/{email_dict['email_address']}",
             headers=self._update_headers({"Content-Type": "application/json"}),
-            data=self.prepare_put_payload(email_dict),
+            data=self.prepare_put_payload(email_dict, index_scope=index_scope),
         )
 
     def email_delete(self, email_address):
