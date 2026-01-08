@@ -38,11 +38,7 @@ class Maltiverse:
 
         Note: index_scope is only applied when the authenticated user is an admin.
         """
-        if (
-            self.admin
-            and "index_scope" not in params
-            and index_scope is not None
-        ):
+        if self.admin and index_scope is not None:
             params["index_scope"] = index_scope
         if self.team_researcher and not self.admin and "blacklist" in params:
             self._sanitize_blacklist(params)
