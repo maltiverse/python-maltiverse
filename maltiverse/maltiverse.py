@@ -32,7 +32,9 @@ class Maltiverse:
         """Update headers with additional headers provided."""
         return {**self._default_headers, **additional_headers}
 
-    def prepare_put_payload(self, params, index_scope: T_AdminIndexScope = "open"):
+    def prepare_put_payload(
+        self, params, index_scope: t.Optional[T_AdminIndexScope] = None
+    ):
         """Prepare the payload for PUT requests, removing fields based on user permissions.
 
         Note: index_scope is only applied when the authenticated user is an admin.
@@ -96,7 +98,7 @@ class Maltiverse:
         """Fetch information for a given IP address."""
         return self._request("GET", f"{self.endpoint}/ip/{ip_addr}")
 
-    def ip_put(self, ip_dict, index_scope: T_AdminIndexScope = "open"):
+    def ip_put(self, ip_dict, index_scope: t.Optional[T_AdminIndexScope] = None):
         """Update or insert an IP address observable."""
         return self._request(
             "PUT",
@@ -113,7 +115,9 @@ class Maltiverse:
         """Fetch information for a given hostname."""
         return self._request("GET", f"{self.endpoint}/hostname/{hostname}")
 
-    def hostname_put(self, hostname_dict, index_scope: T_AdminIndexScope = "open"):
+    def hostname_put(
+        self, hostname_dict, index_scope: t.Optional[T_AdminIndexScope] = None
+    ):
         """Update or insert a hostname observable."""
         return self._request(
             "PUT",
@@ -135,7 +139,7 @@ class Maltiverse:
         """Fetch a URL by its SHA256 checksum."""
         return self._request("GET", f"{self.endpoint}/url/{urlchecksum}")
 
-    def url_put(self, url_dict, index_scope: T_AdminIndexScope = "open"):
+    def url_put(self, url_dict, index_scope: t.Optional[T_AdminIndexScope] = None):
         """Update or insert a URL observable."""
         urlchecksum = hashlib.sha256(url_dict["url"].encode("utf-8")).hexdigest()
         return self._request(
@@ -172,7 +176,9 @@ class Maltiverse:
     def sample_get_by_sha512(self, sha512):
         return self._request("GET", f"{self.endpoint}/sample/sha512/{sha512}")
 
-    def sample_put(self, sample_dict, index_scope: T_AdminIndexScope = "open"):
+    def sample_put(
+        self, sample_dict, index_scope: t.Optional[T_AdminIndexScope] = None
+    ):
         """Update or insert a sample observable."""
         return self._request(
             "PUT",
@@ -189,7 +195,7 @@ class Maltiverse:
         """Fetch information for a given email address."""
         return self._request("GET", f"{self.endpoint}/email/{email_address}")
 
-    def email_put(self, email_dict, index_scope: T_AdminIndexScope = "open"):
+    def email_put(self, email_dict, index_scope: t.Optional[T_AdminIndexScope] = None):
         """Update or insert an email address observable."""
         return self._request(
             "PUT",
