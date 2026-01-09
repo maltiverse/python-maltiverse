@@ -20,6 +20,8 @@ class Maltiverse:
         self.team_researcher = None
         self.admin = None
         self._default_headers = self._create_headers()
+        if self.auth_token:
+            self._decode_token()
 
     def _create_headers(self):
         """Create default headers with or without authentication token."""
