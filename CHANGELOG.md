@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.2.6
+- Fix user fields when using auth_tokens instead of login()
+
 ## 1.2.5
 - Add admin-only index_scope handling to PUT payloads.
 
