@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.2.7
+- Fix: Send admin-only index_scope as query params for PUT requests.
+
 ## 1.2.6
 - Fix user fields when using auth_tokens instead of login()
 
