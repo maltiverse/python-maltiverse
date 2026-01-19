@@ -34,18 +34,17 @@ class Maltiverse:
         """Update headers with additional headers provided."""
         return {**self._default_headers, **additional_headers}
 
-    def prepare_put_payload(
-        self, params: dict, index_scope: t.Optional[T_AdminIndexScope] = None
-    ):
-        """Prepare the payload for PUT requests, removing fields based on user permissions.
+    def prepare_put_payload(self, payload: dict):
+        """Prepare the payload for PUT requests, removing fields based on user permissions."""
+        if self.team_researcher and not self.admin and "blacklist" in payload:
+            self._sanitize_blacklist(payload)
+        return json.dumps(payload)
 
-        Note: index_scope is only applied when the authenticated user is an admin.
-        """
+    def _prepare_put_params(self, index_scope: t.Optional[T_AdminIndexScope] = None):
+        """Prepare query params for PUT requests (index_scope is query-level)."""
         if self.admin and index_scope is not None:
-            params["index_scope"] = index_scope
-        if self.team_researcher and not self.admin and "blacklist" in params:
-            self._sanitize_blacklist(params)
-        return json.dumps(params)
+            return {"index_scope": index_scope}
+        return {}
 
     def _sanitize_blacklist(self, params):
         """Clean restricted fields and add required information to the blacklist."""
@@ -106,7 +105,8 @@ class Maltiverse:
             "PUT",
             f"{self.endpoint}/ip/{ip_dict['ip_addr']}",
             headers=self._update_headers({"Content-Type": "application/json"}),
-            data=self.prepare_put_payload(ip_dict, index_scope=index_scope),
+            params=self._prepare_put_params(index_scope=index_scope),
+            data=self.prepare_put_payload(ip_dict),
         )
 
     def ip_delete(self, ip_addr):
@@ -125,7 +125,8 @@ class Maltiverse:
             "PUT",
             f"{self.endpoint}/hostname/{hostname_dict['hostname']}",
             headers=self._update_headers({"Content-Type": "application/json"}),
-            data=self.prepare_put_payload(hostname_dict, index_scope=index_scope),
+            params=self._prepare_put_params(index_scope=index_scope),
+            data=self.prepare_put_payload(hostname_dict),
         )
 
     def hostname_delete(self, hostname):
@@ -150,7 +151,8 @@ class Maltiverse:
             "PUT",
             f"{self.endpoint}/url/{urlchecksum}",
             headers=self._update_headers({"Content-Type": "application/json"}),
-            data=self.prepare_put_payload(url_dict, index_scope=index_scope),
+            params=self._prepare_put_params(index_scope=index_scope),
+            data=self.prepare_put_payload(url_dict),
         )
 
     def url_delete(self, url):
@@ -188,7 +190,8 @@ class Maltiverse:
             "PUT",
             f"{self.endpoint}/sample/{sample_dict['sha256']}",
             headers=self._update_headers({"Content-Type": "application/json"}),
-            data=self.prepare_put_payload(sample_dict, index_scope=index_scope),
+            params=self._prepare_put_params(index_scope=index_scope),
+            data=self.prepare_put_payload(sample_dict),
         )
 
     def sample_delete(self, sha256):
@@ -207,7 +210,8 @@ class Maltiverse:
             "PUT",
             f"{self.endpoint}/email/{email_dict['email_address']}",
             headers=self._update_headers({"Content-Type": "application/json"}),
-            data=self.prepare_put_payload(email_dict, index_scope=index_scope),
+            params=self._prepare_put_params(index_scope=index_scope),
+            data=self.prepare_put_payload(email_dict),
         )
 
     def email_delete(self, email_address):
