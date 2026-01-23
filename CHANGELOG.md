@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.2.8
+- Add a short PUT timeout to avoid long stalls during bulk uploads when backend failures occur.
+
 ## 1.2.7
 - Fix: Send admin-only index_scope as query params for PUT requests.
 
