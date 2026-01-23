@@ -93,6 +93,9 @@ class Maltiverse:
     def _request(self, method, url, headers=None, **kwargs):
         """Make an HTTP request with the specified method."""
         headers = headers or self._default_headers
+        # Keep a short timeout so bulk uploads don't stall when backend failures occur.
+        if method.upper() == "PUT" and "timeout" not in kwargs:
+            kwargs["timeout"] = 2.0
         return requests.request(method, url, headers=headers, **kwargs).json()
 
     def ip_get(self, ip_addr):
