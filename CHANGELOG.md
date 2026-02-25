@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.2.9
+- Adds support for the new optional IOC PUT query parameter enqueue_ingestion across the Python client.
+
 ## 1.2.8
 - Add a short PUT timeout to avoid long stalls during bulk uploads when backend failures occur.
 

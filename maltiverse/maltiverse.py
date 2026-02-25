@@ -40,11 +40,18 @@ class Maltiverse:
             self._sanitize_blacklist(payload)
         return json.dumps(payload)
 
-    def _prepare_put_params(self, index_scope: t.Optional[T_AdminIndexScope] = None):
-        """Prepare query params for PUT requests (index_scope is query-level)."""
+    def _prepare_put_params(
+        self,
+        index_scope: t.Optional[T_AdminIndexScope] = None,
+        enqueue_ingestion: t.Optional[bool] = None,
+    ):
+        """Prepare query params for PUT requests."""
+        params = {}
         if self.admin and index_scope is not None:
-            return {"index_scope": index_scope}
-        return {}
+            params["index_scope"] = index_scope
+        if enqueue_ingestion is not None:
+            params["enqueue_ingestion"] = enqueue_ingestion
+        return params
 
     def _sanitize_blacklist(self, params):
         """Clean restricted fields and add required information to the blacklist."""
@@ -102,13 +109,20 @@ class Maltiverse:
         """Fetch information for a given IP address."""
         return self._request("GET", f"{self.endpoint}/ip/{ip_addr}")
 
-    def ip_put(self, ip_dict: dict, index_scope: t.Optional[T_AdminIndexScope] = None):
+    def ip_put(
+        self,
+        ip_dict: dict,
+        index_scope: t.Optional[T_AdminIndexScope] = None,
+        enqueue_ingestion: t.Optional[bool] = None,
+    ):
         """Update or insert an IP address observable."""
         return self._request(
             "PUT",
             f"{self.endpoint}/ip/{ip_dict['ip_addr']}",
             headers=self._update_headers({"Content-Type": "application/json"}),
-            params=self._prepare_put_params(index_scope=index_scope),
+            params=self._prepare_put_params(
+                index_scope=index_scope, enqueue_ingestion=enqueue_ingestion
+            ),
             data=self.prepare_put_payload(ip_dict),
         )
 
@@ -121,14 +135,19 @@ class Maltiverse:
         return self._request("GET", f"{self.endpoint}/hostname/{hostname}")
 
     def hostname_put(
-        self, hostname_dict: dict, index_scope: t.Optional[T_AdminIndexScope] = None
+        self,
+        hostname_dict: dict,
+        index_scope: t.Optional[T_AdminIndexScope] = None,
+        enqueue_ingestion: t.Optional[bool] = None,
     ):
         """Update or insert a hostname observable."""
         return self._request(
             "PUT",
             f"{self.endpoint}/hostname/{hostname_dict['hostname']}",
             headers=self._update_headers({"Content-Type": "application/json"}),
-            params=self._prepare_put_params(index_scope=index_scope),
+            params=self._prepare_put_params(
+                index_scope=index_scope, enqueue_ingestion=enqueue_ingestion
+            ),
             data=self.prepare_put_payload(hostname_dict),
         )
 
@@ -146,7 +165,10 @@ class Maltiverse:
         return self._request("GET", f"{self.endpoint}/url/{urlchecksum}")
 
     def url_put(
-        self, url_dict: dict, index_scope: t.Optional[T_AdminIndexScope] = None
+        self,
+        url_dict: dict,
+        index_scope: t.Optional[T_AdminIndexScope] = None,
+        enqueue_ingestion: t.Optional[bool] = None,
     ):
         """Update or insert a URL observable."""
         urlchecksum = hashlib.sha256(url_dict["url"].encode("utf-8")).hexdigest()
@@ -154,7 +176,9 @@ class Maltiverse:
             "PUT",
             f"{self.endpoint}/url/{urlchecksum}",
             headers=self._update_headers({"Content-Type": "application/json"}),
-            params=self._prepare_put_params(index_scope=index_scope),
+            params=self._prepare_put_params(
+                index_scope=index_scope, enqueue_ingestion=enqueue_ingestion
+            ),
             data=self.prepare_put_payload(url_dict),
         )
 
@@ -186,14 +210,19 @@ class Maltiverse:
         return self._request("GET", f"{self.endpoint}/sample/sha512/{sha512}")
 
     def sample_put(
-        self, sample_dict: dict, index_scope: t.Optional[T_AdminIndexScope] = None
+        self,
+        sample_dict: dict,
+        index_scope: t.Optional[T_AdminIndexScope] = None,
+        enqueue_ingestion: t.Optional[bool] = None,
     ):
         """Update or insert a sample observable."""
         return self._request(
             "PUT",
             f"{self.endpoint}/sample/{sample_dict['sha256']}",
             headers=self._update_headers({"Content-Type": "application/json"}),
-            params=self._prepare_put_params(index_scope=index_scope),
+            params=self._prepare_put_params(
+                index_scope=index_scope, enqueue_ingestion=enqueue_ingestion
+            ),
             data=self.prepare_put_payload(sample_dict),
         )
 
@@ -206,14 +235,19 @@ class Maltiverse:
         return self._request("GET", f"{self.endpoint}/email/{email_address}")
 
     def email_put(
-        self, email_dict: dict, index_scope: t.Optional[T_AdminIndexScope] = None
+        self,
+        email_dict: dict,
+        index_scope: t.Optional[T_AdminIndexScope] = None,
+        enqueue_ingestion: t.Optional[bool] = None,
     ):
         """Update or insert an email address observable."""
         return self._request(
             "PUT",
             f"{self.endpoint}/email/{email_dict['email_address']}",
             headers=self._update_headers({"Content-Type": "application/json"}),
-            params=self._prepare_put_params(index_scope=index_scope),
+            params=self._prepare_put_params(
+                index_scope=index_scope, enqueue_ingestion=enqueue_ingestion
+            ),
             data=self.prepare_put_payload(email_dict),
         )
 
