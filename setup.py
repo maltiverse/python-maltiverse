@@ -3,7 +3,7 @@ from setuptools import setup
 setup(
     name="maltiverse",
     packages=["maltiverse"],
-    version="1.2.8",
+    version="1.2.9",
     license="MIT",
     description="Python API wrapper for Maltiverse",
     author="Antonio Gomez",
