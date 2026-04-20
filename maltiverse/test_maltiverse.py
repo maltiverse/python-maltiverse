@@ -3,7 +3,9 @@
 
 
 import unittest
+import typing as t
 from maltiverse import Maltiverse
+from maltiverse.maltiverse import T_AdminIndexScope
 import time
 
 
@@ -20,6 +22,12 @@ class TestMaltiverse(unittest.TestCase):
         m = Maltiverse()
         response_login = m.login(email=self.email, password=self.password)
         self.assertTrue(response_login, True)
+
+    def test_admin_index_scope_literal_uses_showroom(self):
+        """Ensure the admin index scope literal reflects the supported values."""
+        self.assertEqual(
+            t.get_args(T_AdminIndexScope), ("open", "restricted", "showroom")
+        )
 
     def test_ip_get(self):
         """Test that performs an ip lookup"""
