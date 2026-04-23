@@ -4,6 +4,7 @@
 
 import unittest
 import typing as t
+from unittest.mock import patch
 from maltiverse import Maltiverse
 from maltiverse.maltiverse import T_AdminIndexScope
 import time
@@ -206,6 +207,36 @@ class TestMaltiverse(unittest.TestCase):
         self.assertTrue("status" in item)
         self.assertTrue(item["status"] == "success")
         self.assertTrue(item["message"] == "Sample deleted")
+
+
+class TestMaltiverseIocHelpers(unittest.TestCase):
+    """Unit tests for generic IOC helpers."""
+
+    def test_ioc_put_uses_generic_endpoint(self):
+        m = Maltiverse()
+        ioc_dict = {"ip_addr": "1.1.1.1", "type": "ip"}
+        with patch.object(m, "_request", return_value={"status": "success"}) as req:
+            item = m.ioc_put(ioc_dict)
+        req.assert_called_once()
+        args, kwargs = req.call_args
+        self.assertEqual(args[0], "POST")
+        self.assertEqual(args[1], "https://api.maltiverse.com/ioc")
+        self.assertEqual(kwargs["data"], '{"ip_addr": "1.1.1.1", "type": "ip"}')
+        self.assertEqual(item["status"], "success")
+
+    def test_ioc_delete_uses_generic_endpoint(self):
+        m = Maltiverse()
+        ioc_dict = {"hostname": "example.com", "type": "hostname"}
+        with patch.object(m, "_request", return_value={"status": "success"}) as req:
+            item = m.ioc_delete(ioc_dict)
+        req.assert_called_once()
+        args, kwargs = req.call_args
+        self.assertEqual(args[0], "DELETE")
+        self.assertEqual(args[1], "https://api.maltiverse.com/ioc")
+        self.assertEqual(
+            kwargs["data"], '{"hostname": "example.com", "type": "hostname"}'
+        )
+        self.assertEqual(item["status"], "success")
 
 
 if __name__ == "__main__":

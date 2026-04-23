@@ -105,6 +105,37 @@ class Maltiverse:
             kwargs["timeout"] = 2.0
         return requests.request(method, url, headers=headers, **kwargs).json()
 
+    def ioc_put(
+        self,
+        ioc_dict: dict,
+        index_scope: t.Optional[T_AdminIndexScope] = None,
+    ):
+        """Update or insert an observable using the generic IOC endpoint.
+
+        The backend generic /ioc endpoint always enqueues ingestion.
+        """
+        return self._request(
+            "POST",
+            f"{self.endpoint}/ioc",
+            headers=self._update_headers({"Content-Type": "application/json"}),
+            params=self._prepare_put_params(index_scope=index_scope),
+            data=self.prepare_put_payload(ioc_dict),
+        )
+
+    def ioc_delete(
+        self,
+        ioc_dict: dict,
+        index_scope: t.Optional[T_AdminIndexScope] = None,
+    ):
+        """Delete an observable using the generic IOC endpoint."""
+        return self._request(
+            "DELETE",
+            f"{self.endpoint}/ioc",
+            headers=self._update_headers({"Content-Type": "application/json"}),
+            params=self._prepare_put_params(index_scope=index_scope),
+            data=json.dumps(ioc_dict),
+        )
+
     def ip_get(self, ip_addr):
         """Fetch information for a given IP address."""
         return self._request("GET", f"{self.endpoint}/ip/{ip_addr}")
