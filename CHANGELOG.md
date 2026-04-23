@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.2.11
+- Add generic IOC helpers for the directly supported API operations: `ioc_put()` and `ioc_delete()` use the generic `/ioc` API endpoint.
+
 ## 1.2.10
 - Rename the admin `index_scope` literal value from `sandbox` to `showroom`.
 

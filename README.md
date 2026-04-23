@@ -44,12 +44,33 @@ From this point request will be sent with authentication JWT parameter if requir
 + hostname_get()
 + url_get()
 + sample_get()
++ email_get()
++ ioc_put()
++ ioc_delete()
 
+## [2.2 - Generic IOC](#table-of-contents)
+## [2.2.1 - POST/DELETE](#table-of-contents)
 
+Uploads or deletes an indicator using the generic `/ioc` endpoint.
 
+```python
+from maltiverse import Maltiverse
+api = Maltiverse(auth_token="token")
 
-## [2.2 - IPv4](#table-of-contents)
-## [2.2.1 - GET](#table-of-contents)
+api.ioc_put({
+    "ip_addr": "60.60.60.60",
+    "classification": "whitelisted",
+    "type": "ip"
+})
+
+api.ioc_delete({
+    "ip_addr": "60.60.60.60",
+    "type": "ip"
+})
+```
+
+## [2.3 - IPv4](#table-of-contents)
+## [2.3.1 - GET](#table-of-contents)
 
 Retrieves an IPv4 address in JSON format
 
@@ -140,8 +161,8 @@ Output
 }
 ```
 
-## [2.3 - Hostname](#table-of-contents)
-## [2.3.1 - GET](#table-of-contents)
+## [2.4 - Hostname](#table-of-contents)
+## [2.4.1 - GET](#table-of-contents)
 
 Retrieves a Hostname in JSON format
 
@@ -199,8 +220,8 @@ Output
 ```
 
 
-## [2.4 - Url](#table-of-contents)
-## [2.4.1 - GET](#table-of-contents)
+## [2.5 - Url](#table-of-contents)
+## [2.5.1 - GET](#table-of-contents)
 
 Retrieves a URL in JSON format
 
@@ -251,13 +272,13 @@ Output
 ```
 
 
-## [2.5 - Sample](#table-of-contents)
-## [2.5.1 - GET](#table-of-contents)
+## [2.6 - Sample](#table-of-contents)
+## [2.6.1 - GET](#table-of-contents)
 
 Retrieves information about a sample/file in JSON format. 
 
   + sample_get: Retrieves a sample by its SHA256 hash.
-  + sample_get_md5: Retrieves a sample by its MD5 hash.
+  + sample_get_by_md5: Retrieves a sample by its MD5 hash.
 
 ```python
 import json
@@ -273,7 +294,7 @@ import json
 from maltiverse import Maltiverse
 api = Maltiverse()
 
-result = api.sample_get_md5("e09f2eaebc86f54b48e4fb5101454535")
+result = api.sample_get_by_md5("e09f2eaebc86f54b48e4fb5101454535")
 print(json.dumps(result, indent=4, sort_keys=True))
 ```
 
@@ -431,4 +452,3 @@ Output
     "type": "sample"
 }
 ```
-
