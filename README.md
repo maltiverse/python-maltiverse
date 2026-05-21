@@ -71,7 +71,7 @@ api.ioc_delete({
 
 ## [2.2.2 - Bulk upload](#table-of-contents)
 
-For batches of indicators, use the `/bulk` endpoint via `bulk_upsert()` (synchronous) or `bulk_upsert_buffered()` (queued, async on the server).
+For batches of indicators, use the `/bulk` endpoint via `bulk_upsert()`. Pass `buffered=True` to opt into the server's async ingestion path.
 
 ```python
 from maltiverse import Maltiverse
@@ -88,10 +88,10 @@ api.bulk_upsert(indicators)
 # Buffered: the server queues the batch and applies it asynchronously.
 # Returns {"task": "<id>"} immediately. There is no progress endpoint for
 # this task id — treat the call as fire-and-forget.
-api.bulk_upsert_buffered(indicators, index_scope="restricted")
+api.bulk_upsert(indicators, buffered=True, index_scope="restricted")
 ```
 
-Either form accepts a list of indicator dicts or `{"indicators": [...]}`.
+`indicators` may be a list of indicator dicts or `{"indicators": [...]}`.
 
 Trade-offs of the buffered path:
 
