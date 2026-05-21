@@ -295,9 +295,7 @@ class Maltiverse:
         """
         if isinstance(indicators, dict):
             if "indicators" not in indicators:
-                raise ValueError(
-                    "bulk payload dict must contain an 'indicators' key"
-                )
+                raise ValueError("bulk payload dict must contain an 'indicators' key")
             payload = indicators
         else:
             payload = list(indicators)
@@ -335,6 +333,7 @@ class Maltiverse:
         indicators,
         *,
         buffered: bool = False,
+        enrich: bool = True,
         index_scope: t.Optional[T_BulkIndexScope] = None,
     ):
         """Upload a batch of indicators via ``POST /bulk``.
@@ -346,7 +345,8 @@ class Maltiverse:
         ingestion path (``?buffered=true``), coalescing duplicate writes
         within a short window and returning ``{"task": "<id>"}`` immediately.
         There is no progress endpoint for that task id — treat the call as
-        fire-and-forget. ``enrich`` is not supported in buffered mode.
+        fire-and-forget. ``enrich`` controls server-side scoring/enrichment for the batch and
+        defaults to ``True``.
 
         ``index_scope`` is admin-only for the ``open``/``restricted``/
         ``showroom`` values; platform users always write to their tenant
@@ -355,6 +355,8 @@ class Maltiverse:
         params = {}
         if buffered:
             params["buffered"] = "true"
+        else:
+            params["enrich"] = "true" if enrich else "false"
         if index_scope is not None:
             params["index_scope"] = index_scope
         data = self._serialize_bulk_indicators(indicators)

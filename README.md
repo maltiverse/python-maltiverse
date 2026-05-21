@@ -82,8 +82,10 @@ indicators = [
     {"hostname": "example.com", "type": "hostname", "classification": "neutral"},
 ]
 
-# Synchronous: write completes before the call returns.
+# Synchronous: write completes before the call returns. Server-side
+# scoring/enrichment is on by default; pass enrich=False to skip it.
 api.bulk_upsert(indicators)
+api.bulk_upsert(indicators, enrich=True)
 
 # Buffered: the server queues the batch and applies it asynchronously.
 # Returns {"task": "<id>"} immediately. There is no progress endpoint for
@@ -98,7 +100,7 @@ Trade-offs of the buffered path:
 - Lower write pressure for large uploads; duplicate writes for the same indicator within the coalescing window are merged server-side (counts add, no duplicate documents).
 - Indicators are **not** immediately searchable — expect a short delay before they appear.
 - No progress or completion tracking is exposed; the returned task id is informational only.
-- `enrich` is **not** supported in buffered mode (the server returns 400).
+- `enrich` is supported in buffered mode; this behaviour can be changed by `buffered=False`.
 - `index_scope` is optional. Admins may select `open`, `restricted`, or `showroom`; platform users always write to their `tenant` index regardless of this argument.
 
 Errors (4xx/5xx) raise `requests.HTTPError`. When the server returns a `{"status": "fail", "message": "..."}` body, that message is included in the exception text and the original response is available as `err.response`.
@@ -309,7 +311,7 @@ Output
 ## [2.6 - Sample](#table-of-contents)
 ## [2.6.1 - GET](#table-of-contents)
 
-Retrieves information about a sample/file in JSON format. 
+Retrieves information about a sample/file in JSON format.
 
   + sample_get: Retrieves a sample by its SHA256 hash.
   + sample_get_by_md5: Retrieves a sample by its MD5 hash.
