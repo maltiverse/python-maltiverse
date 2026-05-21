@@ -69,6 +69,40 @@ api.ioc_delete({
 })
 ```
 
+## [2.2.2 - Bulk upload](#table-of-contents)
+
+For batches of indicators, use the `/bulk` endpoint via `bulk_upsert()` (synchronous) or `bulk_upsert_buffered()` (queued, async on the server).
+
+```python
+from maltiverse import Maltiverse
+api = Maltiverse(auth_token="token")
+
+indicators = [
+    {"ip_addr": "60.60.60.60", "type": "ip", "classification": "whitelisted"},
+    {"hostname": "example.com", "type": "hostname", "classification": "neutral"},
+]
+
+# Synchronous: write completes before the call returns.
+api.bulk_upsert(indicators)
+
+# Buffered: the server queues the batch and applies it asynchronously.
+# Returns {"task": "<id>"} immediately. There is no progress endpoint for
+# this task id — treat the call as fire-and-forget.
+api.bulk_upsert_buffered(indicators, index_scope="restricted")
+```
+
+Either form accepts a list of indicator dicts or `{"indicators": [...]}`.
+
+Trade-offs of the buffered path:
+
+- Lower write pressure for large uploads; duplicate writes for the same indicator within the coalescing window are merged server-side (counts add, no duplicate documents).
+- Indicators are **not** immediately searchable — expect a short delay before they appear.
+- No progress or completion tracking is exposed; the returned task id is informational only.
+- `enrich` is **not** supported in buffered mode (the server returns 400).
+- `index_scope` is optional. Admins may select `open`, `restricted`, or `showroom`; platform users always write to their `tenant` index regardless of this argument.
+
+Errors (4xx/5xx) raise `requests.HTTPError`. When the server returns a `{"status": "fail", "message": "..."}` body, that message is included in the exception text and the original response is available as `err.response`.
+
 ## [2.3 - IPv4](#table-of-contents)
 ## [2.3.1 - GET](#table-of-contents)
 
