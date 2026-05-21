@@ -11,6 +11,15 @@ import requests
 T_AdminIndexScope = t.Literal["open", "restricted", "showroom"]
 
 
+class MaltiverseError(Exception):
+    """Raised when the Maltiverse API returns a 4xx or 5xx response."""
+
+    def __init__(self, status_code: int, message: str):
+        self.status_code = status_code
+        self.message = message
+        super().__init__(f"HTTP {status_code}: {message}")
+
+
 class Maltiverse:
     def __init__(self, auth_token=None, endpoint="https://api.maltiverse.com"):
         self.endpoint = endpoint
@@ -97,13 +106,24 @@ class Maltiverse:
         self.team_researcher = decoded_payload.get("team_researcher")
         self.admin = decoded_payload.get("admin")
 
-    def _request(self, method, url, headers=None, **kwargs):
+    def _request(self, method, url, headers=None, check_status=False, **kwargs):
         """Make an HTTP request with the specified method."""
         headers = headers or self._default_headers
         # Keep a short timeout so bulk uploads don't stall when backend failures occur.
         if method.upper() == "PUT" and "timeout" not in kwargs:
             kwargs["timeout"] = 2.0
-        return requests.request(method, url, headers=headers, **kwargs).json()
+        response = requests.request(method, url, headers=headers, **kwargs)
+        if check_status and not response.ok:
+            body = {}
+            try:
+                body = response.json()
+            except Exception:
+                pass
+            raise MaltiverseError(
+                response.status_code,
+                body.get("message", response.text),
+            )
+        return response.json()
 
     def ioc_put(
         self,
@@ -134,6 +154,57 @@ class Maltiverse:
             headers=self._update_headers({"Content-Type": "application/json"}),
             params=self._prepare_put_params(index_scope=index_scope),
             data=json.dumps(ioc_dict),
+        )
+
+    def bulk_upsert_buffered(
+        self,
+        indicators: t.List[dict],
+        *,
+        index_scope: t.Optional[T_AdminIndexScope] = None,
+    ) -> dict:
+        """Enqueue a batch of indicators for buffered ingestion via the server-side Redis buffer.
+
+        Writes are coalesced and flushed to Elasticsearch in ~30-second windows by a
+        Celery beat task. Indicators are NOT immediately searchable after this call
+        returns — expect up to ~30 s of visibility latency.
+
+        Use this for large admin/API batch uploads that do not require immediate
+        visibility. Use ioc_put or the per-type PUT methods when writes must appear in
+        search results right away.
+
+        The server does not expose a progress endpoint for buffered writes — the
+        returned task ID is informational only.
+
+        Args:
+            indicators: List of IOC dicts. Accepts the same shapes as ioc_put.
+            index_scope: Target index ("open", "restricted", "showroom"). Honoured only
+                for admin tokens — platform users always write to their tenant index
+                regardless of this value.
+
+        Returns:
+            Parsed JSON, e.g. {"task": "<celery-task-uuid>"}.
+
+        Raises:
+            MaltiverseError: On any 4xx or 5xx response. The server returns 400 for a
+                malformed payload or if enrich=true is passed, and 403 for an
+                unauthorised index_scope.
+
+        Notes:
+            - Repeated upserts for the same indicator within a flush window coalesce:
+              blacklist counts accumulate without creating duplicate documents.
+            - index_scope is a no-op for platform users; the server always uses their
+              tenant index.
+        """
+        params: dict = {"buffered": "true"}
+        if self.admin and index_scope is not None:
+            params["index_scope"] = index_scope
+        return self._request(
+            "POST",
+            f"{self.endpoint}/bulk",
+            headers=self._update_headers({"Content-Type": "application/json"}),
+            params=params,
+            data=json.dumps({"indicators": indicators}),
+            check_status=True,
         )
 
     def ip_get(self, ip_addr):

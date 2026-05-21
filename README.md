@@ -47,6 +47,7 @@ From this point request will be sent with authentication JWT parameter if requir
 + email_get()
 + ioc_put()
 + ioc_delete()
++ bulk_upsert_buffered()
 
 ## [2.2 - Generic IOC](#table-of-contents)
 ## [2.2.1 - POST/DELETE](#table-of-contents)
@@ -68,6 +69,54 @@ api.ioc_delete({
     "type": "ip"
 })
 ```
+
+## [2.2.2 - Buffered bulk upsert](#table-of-contents)
+
+`bulk_upsert_buffered` enqueues a batch of indicators into the server-side Redis buffer
+instead of writing directly to Elasticsearch. A Celery beat task flushes the buffer
+roughly every 30 seconds in a single bulk write.
+
+```python
+from maltiverse import Maltiverse, MaltiverseError
+
+api = Maltiverse(auth_token="<admin-token>")
+
+task = api.bulk_upsert_buffered(
+    [
+        {"ip_addr": "1.2.3.4", "type": "ip", "classification": "malicious",
+         "blacklist": [{"description": "C2", "source": "my-feed"}]},
+        {"hostname": "evil.example.com", "type": "hostname",
+         "classification": "malicious",
+         "blacklist": [{"description": "C2", "source": "my-feed"}]},
+    ],
+    index_scope="restricted",   # admins only; omit to use server default
+)
+print(task)  # {"task": "<celery-task-uuid>"}
+```
+
+**When to use buffered vs. direct**
+
+| | Buffered (`bulk_upsert_buffered`) | Direct (`ioc_put` / per-type PUT) |
+|---|---|---|
+| Visibility latency | Up to ~30 s | Immediate |
+| Best for | Large admin/API batch uploads | Interactive or latency-sensitive writes |
+| Duplicate handling | Same indicator within one flush window: counts coalesce, no duplicate document | Each call creates or updates immediately |
+
+**Important notes**
+
+- **Visibility delay** — indicators are not searchable in Elasticsearch until the next
+  Celery beat tick (~30 s worst case).
+- **`index_scope` for platform users** — the server ignores this parameter for
+  non-admin tokens and always writes to the caller's tenant index.
+- **Coalescing** — if you upsert the same indicator multiple times within a single
+  flush window, the server merges them: blacklist `count` values accumulate but only
+  one document is written.
+- **`enrich`** — do not pass `enrich=True`; the server returns 400 for
+  `buffered + enrich`.
+- **Task ID** — the returned `{"task": "..."}` is informational only. There is no
+  progress endpoint for buffered writes.
+- **Error handling** — a `MaltiverseError` is raised on any 4xx/5xx response with
+  `status_code` and `message` attributes.
 
 ## [2.3 - IPv4](#table-of-contents)
 ## [2.3.1 - GET](#table-of-contents)

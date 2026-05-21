@@ -2,10 +2,11 @@
 # -*- coding: utf-8 -*-
 
 
+import json
 import unittest
 import typing as t
-from unittest.mock import patch
-from maltiverse import Maltiverse
+from unittest.mock import Mock, patch
+from maltiverse import Maltiverse, MaltiverseError
 from maltiverse.maltiverse import T_AdminIndexScope
 import time
 
@@ -237,6 +238,93 @@ class TestMaltiverseIocHelpers(unittest.TestCase):
             kwargs["data"], '{"hostname": "example.com", "type": "hostname"}'
         )
         self.assertEqual(item["status"], "success")
+
+
+class TestBulkUpsertBuffered(unittest.TestCase):
+    """Unit tests for bulk_upsert_buffered."""
+
+    def _admin_client(self):
+        m = Maltiverse()
+        m.admin = True
+        return m
+
+    def test_posts_to_bulk_endpoint_with_buffered_param(self):
+        m = Maltiverse()
+        indicators = [{"ip_addr": "1.1.1.1", "type": "ip"}]
+        with patch.object(m, "_request", return_value={"task": "abc-123"}) as req:
+            result = m.bulk_upsert_buffered(indicators)
+        req.assert_called_once()
+        args, kwargs = req.call_args
+        self.assertEqual(args[0], "POST")
+        self.assertEqual(args[1], "https://api.maltiverse.com/bulk")
+        self.assertEqual(kwargs["params"]["buffered"], "true")
+        self.assertNotIn("index_scope", kwargs["params"])
+        self.assertEqual(result, {"task": "abc-123"})
+
+    def test_index_scope_included_for_admin(self):
+        m = self._admin_client()
+        with patch.object(m, "_request", return_value={"task": "t"}) as req:
+            m.bulk_upsert_buffered([{"ip_addr": "2.2.2.2", "type": "ip"}], index_scope="restricted")
+        _, kwargs = req.call_args
+        self.assertEqual(kwargs["params"]["index_scope"], "restricted")
+
+    def test_index_scope_omitted_for_non_admin(self):
+        m = Maltiverse()
+        m.admin = False
+        with patch.object(m, "_request", return_value={"task": "t"}) as req:
+            m.bulk_upsert_buffered([{"ip_addr": "3.3.3.3", "type": "ip"}], index_scope="restricted")
+        _, kwargs = req.call_args
+        self.assertNotIn("index_scope", kwargs["params"])
+
+    def test_body_serialized_as_indicators_wrapper(self):
+        m = Maltiverse()
+        indicators = [{"ip_addr": "1.1.1.1", "type": "ip"}]
+        with patch.object(m, "_request", return_value={"task": "t"}) as req:
+            m.bulk_upsert_buffered(indicators)
+        _, kwargs = req.call_args
+        self.assertEqual(kwargs["data"], json.dumps({"indicators": indicators}))
+
+    def test_check_status_is_passed_to_request(self):
+        m = Maltiverse()
+        with patch.object(m, "_request", return_value={"task": "t"}) as req:
+            m.bulk_upsert_buffered([{"ip_addr": "1.1.1.1", "type": "ip"}])
+        _, kwargs = req.call_args
+        self.assertTrue(kwargs.get("check_status"))
+
+    def test_raises_maltiverse_error_on_400(self):
+        m = Maltiverse()
+        mock_resp = Mock()
+        mock_resp.ok = False
+        mock_resp.status_code = 400
+        mock_resp.json.return_value = {"status": "fail", "message": "enrich not supported with buffered"}
+        mock_resp.text = "Bad Request"
+        with patch("maltiverse.maltiverse.requests.request", return_value=mock_resp):
+            with self.assertRaises(MaltiverseError) as ctx:
+                m.bulk_upsert_buffered([{"ip_addr": "1.1.1.1", "type": "ip"}])
+        self.assertEqual(ctx.exception.status_code, 400)
+        self.assertIn("enrich", ctx.exception.message)
+
+    def test_raises_maltiverse_error_on_403(self):
+        m = Maltiverse()
+        mock_resp = Mock()
+        mock_resp.ok = False
+        mock_resp.status_code = 403
+        mock_resp.json.return_value = {"status": "fail", "message": "Forbidden"}
+        mock_resp.text = "Forbidden"
+        with patch("maltiverse.maltiverse.requests.request", return_value=mock_resp):
+            with self.assertRaises(MaltiverseError) as ctx:
+                m.bulk_upsert_buffered([{"ip_addr": "1.1.1.1", "type": "ip"}])
+        self.assertEqual(ctx.exception.status_code, 403)
+
+    def test_returns_task_id_on_202(self):
+        m = Maltiverse()
+        mock_resp = Mock()
+        mock_resp.ok = True
+        mock_resp.status_code = 202
+        mock_resp.json.return_value = {"task": "deadbeef-1234"}
+        with patch("maltiverse.maltiverse.requests.request", return_value=mock_resp):
+            result = m.bulk_upsert_buffered([{"ip_addr": "1.1.1.1", "type": "ip"}])
+        self.assertEqual(result["task"], "deadbeef-1234")
 
 
 if __name__ == "__main__":

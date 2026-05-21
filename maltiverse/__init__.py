@@ -1,3 +1,3 @@
-from .maltiverse import Maltiverse
+from .maltiverse import Maltiverse, MaltiverseError
 
-__all__ = ["Maltiverse"]
+__all__ = ["Maltiverse", "MaltiverseError"]
