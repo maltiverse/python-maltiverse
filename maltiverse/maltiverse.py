@@ -334,34 +334,27 @@ class Maltiverse:
         self,
         indicators,
         *,
+        buffered: bool = False,
         index_scope: t.Optional[T_BulkIndexScope] = None,
     ):
-        """Upload a batch of indicators synchronously via ``POST /bulk``.
+        """Upload a batch of indicators via ``POST /bulk``.
 
         Indicators may be passed as a list of indicator dicts or as
-        ``{"indicators": [...]}``.  ``index_scope`` is admin-only for the
-        ``open``/``restricted``/``showroom`` values; platform users always
-        write to their tenant index regardless of this argument.
+        ``{"indicators": [...]}``.
+
+        When ``buffered=True`` the server queues the batch on its async
+        ingestion path (``?buffered=true``), coalescing duplicate writes
+        within a short window and returning ``{"task": "<id>"}`` immediately.
+        There is no progress endpoint for that task id — treat the call as
+        fire-and-forget. ``enrich`` is not supported in buffered mode.
+
+        ``index_scope`` is admin-only for the ``open``/``restricted``/
+        ``showroom`` values; platform users always write to their tenant
+        index regardless of this argument.
         """
         params = {}
-        if index_scope is not None:
-            params["index_scope"] = index_scope
-        data = self._serialize_bulk_indicators(indicators)
-        return self._bulk_post(params, data)
-
-    def bulk_upsert_buffered(
-        self,
-        indicators,
-        *,
-        index_scope: t.Optional[T_BulkIndexScope] = None,
-    ):
-        """Queue a batch of indicators via ``POST /bulk?buffered=true``.
-
-        The server applies the write asynchronously; duplicates within the
-        coalescing window are merged.  Returns the parsed ``{"task": "..."}``
-        response.  There is no progress endpoint for the returned task id.
-        """
-        params = {"buffered": "true"}
+        if buffered:
+            params["buffered"] = "true"
         if index_scope is not None:
             params["index_scope"] = index_scope
         data = self._serialize_bulk_indicators(indicators)

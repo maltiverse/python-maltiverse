@@ -297,7 +297,9 @@ class TestMaltiverseBulk(unittest.TestCase):
                 status_code=202, json_body={"task": "abc-123"}
             ),
         ) as post:
-            result = m.bulk_upsert_buffered(indicators, index_scope="restricted")
+            result = m.bulk_upsert(
+                indicators, buffered=True, index_scope="restricted"
+            )
         _, kwargs = post.call_args
         self.assertEqual(
             kwargs["params"], {"buffered": "true", "index_scope": "restricted"}
@@ -312,7 +314,9 @@ class TestMaltiverseBulk(unittest.TestCase):
                 status_code=202, json_body={"task": "abc"}
             ),
         ) as post:
-            m.bulk_upsert_buffered([{"ip_addr": "1.1.1.1", "type": "ip"}])
+            m.bulk_upsert(
+                [{"ip_addr": "1.1.1.1", "type": "ip"}], buffered=True
+            )
         self.assertEqual(post.call_args.kwargs["params"], {"buffered": "true"})
 
     def test_bulk_upsert_raises_http_error_surfacing_server_message(self):
@@ -323,7 +327,9 @@ class TestMaltiverseBulk(unittest.TestCase):
         )
         with patch("maltiverse.maltiverse.requests.post", return_value=resp):
             with self.assertRaises(requests.HTTPError) as ctx:
-                m.bulk_upsert_buffered([{"ip_addr": "1.1.1.1", "type": "ip"}])
+                m.bulk_upsert(
+                    [{"ip_addr": "1.1.1.1", "type": "ip"}], buffered=True
+                )
         self.assertIn("enrich not allowed", str(ctx.exception))
         self.assertIn("fail", str(ctx.exception))
         self.assertIs(ctx.exception.response, resp)
