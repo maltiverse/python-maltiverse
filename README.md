@@ -82,10 +82,8 @@ indicators = [
     {"hostname": "example.com", "type": "hostname", "classification": "neutral"},
 ]
 
-# Synchronous: write completes before the call returns. Server-side
-# scoring/enrichment is on by default; pass enrich=False to skip it.
+# Synchronous: write completes before the call returns.
 api.bulk_upsert(indicators)
-api.bulk_upsert(indicators, enrich=True)
 
 # Buffered: the server queues the batch and applies it asynchronously.
 # Returns {"task": "<id>"} immediately. There is no progress endpoint for
@@ -100,7 +98,6 @@ Trade-offs of the buffered path:
 - Lower write pressure for large uploads; duplicate writes for the same indicator within the coalescing window are merged server-side (counts add, no duplicate documents).
 - Indicators are **not** immediately searchable — expect a short delay before they appear.
 - No progress or completion tracking is exposed; the returned task id is informational only.
-- `enrich` is supported in buffered mode; this behaviour can be changed by `buffered=False`.
 - `index_scope` is optional. Admins may select `open`, `restricted`, or `showroom`; platform users always write to their `tenant` index regardless of this argument.
 
 Errors (4xx/5xx) raise `requests.HTTPError`. When the server returns a `{"status": "fail", "message": "..."}` body, that message is included in the exception text and the original response is available as `err.response`.

@@ -268,7 +268,7 @@ class TestMaltiverseBulk(unittest.TestCase):
             result = m.bulk_upsert(indicators)
         post.assert_called_once()
         _, kwargs = post.call_args
-        self.assertEqual(kwargs["params"], {"enrich": "true"})
+        self.assertEqual(kwargs["params"], {})
         self.assertEqual(json.loads(kwargs["data"]), indicators)
         self.assertEqual(post.call_args[0][0], "https://api.maltiverse.com/bulk")
         self.assertEqual(result, {"status": "success"})
@@ -287,28 +287,6 @@ class TestMaltiverseBulk(unittest.TestCase):
         m = Maltiverse()
         with self.assertRaises(ValueError):
             m.bulk_upsert({"foo": "bar"})
-
-    def test_bulk_upsert_enrich_false(self):
-        m = Maltiverse()
-        with patch(
-            "maltiverse.maltiverse.requests.post",
-            return_value=self._mock_response(json_body={"status": "success"}),
-        ) as post:
-            m.bulk_upsert([{"ip_addr": "1.1.1.1", "type": "ip"}], enrich=False)
-        self.assertEqual(post.call_args.kwargs["params"], {"enrich": "false"})
-
-    def test_bulk_upsert_buffered_omits_enrich(self):
-        m = Maltiverse()
-        with patch(
-            "maltiverse.maltiverse.requests.post",
-            return_value=self._mock_response(
-                status_code=202, json_body={"task": "abc"}
-            ),
-        ) as post:
-            m.bulk_upsert(
-                [{"ip_addr": "1.1.1.1", "type": "ip"}], buffered=True, enrich=True
-            )
-        self.assertEqual(post.call_args.kwargs["params"], {"buffered": "true"})
 
     def test_bulk_upsert_buffered_sets_query_params(self):
         m = Maltiverse()
