@@ -332,7 +332,6 @@ class Maltiverse:
         self,
         indicators,
         *,
-        buffered: bool = False,
         index_scope: t.Optional[T_BulkIndexScope] = None,
     ):
         """Upload a batch of indicators via ``POST /bulk``.
@@ -340,19 +339,17 @@ class Maltiverse:
         Indicators may be passed as a list of indicator dicts or as
         ``{"indicators": [...]}``.
 
-        When ``buffered=True`` the server queues the batch on its async
-        ingestion path (``?buffered=true``), coalescing duplicate writes
-        within a short window and returning ``{"task": "<id>"}`` immediately.
-        There is no progress endpoint for that task id — treat the call as
-        fire-and-forget.
+        The server applies all bulk writes through its buffered ingestion
+        path: duplicate writes within the coalescing window are merged and
+        indicators are not immediately searchable. Returns the parsed JSON
+        response (typically ``{"task": "<id>"}``); there is no progress
+        endpoint for that task id, so treat the call as fire-and-forget.
 
         ``index_scope`` is admin-only for the ``open``/``restricted``/
         ``showroom`` values; platform users always write to their tenant
         index regardless of this argument.
         """
         params = {}
-        if buffered:
-            params["buffered"] = "true"
         if index_scope is not None:
             params["index_scope"] = index_scope
         data = self._serialize_bulk_indicators(indicators)

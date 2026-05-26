@@ -288,7 +288,7 @@ class TestMaltiverseBulk(unittest.TestCase):
         with self.assertRaises(ValueError):
             m.bulk_upsert({"foo": "bar"})
 
-    def test_bulk_upsert_buffered_sets_query_params(self):
+    def test_bulk_upsert_sets_index_scope(self):
         m = Maltiverse()
         indicators = [{"ip_addr": "1.1.1.1", "type": "ip"}]
         with patch(
@@ -297,40 +297,21 @@ class TestMaltiverseBulk(unittest.TestCase):
                 status_code=202, json_body={"task": "abc-123"}
             ),
         ) as post:
-            result = m.bulk_upsert(
-                indicators, buffered=True, index_scope="restricted"
-            )
+            result = m.bulk_upsert(indicators, index_scope="restricted")
         _, kwargs = post.call_args
-        self.assertEqual(
-            kwargs["params"], {"buffered": "true", "index_scope": "restricted"}
-        )
+        self.assertEqual(kwargs["params"], {"index_scope": "restricted"})
         self.assertEqual(result, {"task": "abc-123"})
-
-    def test_bulk_upsert_buffered_omits_scope_when_unset(self):
-        m = Maltiverse()
-        with patch(
-            "maltiverse.maltiverse.requests.post",
-            return_value=self._mock_response(
-                status_code=202, json_body={"task": "abc"}
-            ),
-        ) as post:
-            m.bulk_upsert(
-                [{"ip_addr": "1.1.1.1", "type": "ip"}], buffered=True
-            )
-        self.assertEqual(post.call_args.kwargs["params"], {"buffered": "true"})
 
     def test_bulk_upsert_raises_http_error_surfacing_server_message(self):
         m = Maltiverse()
         resp = self._mock_response(
             status_code=400,
-            json_body={"status": "fail", "message": "enrich not allowed"},
+            json_body={"status": "fail", "message": "bad payload"},
         )
         with patch("maltiverse.maltiverse.requests.post", return_value=resp):
             with self.assertRaises(requests.HTTPError) as ctx:
-                m.bulk_upsert(
-                    [{"ip_addr": "1.1.1.1", "type": "ip"}], buffered=True
-                )
-        self.assertIn("enrich not allowed", str(ctx.exception))
+                m.bulk_upsert([{"ip_addr": "1.1.1.1", "type": "ip"}])
+        self.assertIn("bad payload", str(ctx.exception))
         self.assertIn("fail", str(ctx.exception))
         self.assertIs(ctx.exception.response, resp)
 

@@ -71,7 +71,7 @@ api.ioc_delete({
 
 ## [2.2.2 - Bulk upload](#table-of-contents)
 
-For batches of indicators, use the `/bulk` endpoint via `bulk_upsert()`. Pass `buffered=True` to opt into the server's async ingestion path.
+For batches of indicators, use the `/bulk` endpoint via `bulk_upsert()`. The server applies all bulk writes through its buffered ingestion path, so the call is fire-and-forget.
 
 ```python
 from maltiverse import Maltiverse
@@ -82,22 +82,17 @@ indicators = [
     {"hostname": "example.com", "type": "hostname", "classification": "neutral"},
 ]
 
-# Synchronous: write completes before the call returns.
 api.bulk_upsert(indicators)
-
-# Buffered: the server queues the batch and applies it asynchronously.
-# Returns {"task": "<id>"} immediately. There is no progress endpoint for
-# this task id — treat the call as fire-and-forget.
-api.bulk_upsert(indicators, buffered=True, index_scope="restricted")
+api.bulk_upsert(indicators, index_scope="restricted")
 ```
 
 `indicators` may be a list of indicator dicts or `{"indicators": [...]}`.
 
-Trade-offs of the buffered path:
+Things to know about the bulk path:
 
-- Lower write pressure for large uploads; duplicate writes for the same indicator within the coalescing window are merged server-side (counts add, no duplicate documents).
+- Lower write pressure for large uploads; duplicate writes for the same indicator within the server's coalescing window are merged (counts add, no duplicate documents).
 - Indicators are **not** immediately searchable — expect a short delay before they appear.
-- No progress or completion tracking is exposed; the returned task id is informational only.
+- No progress or completion tracking is exposed; the returned task id (when present) is informational only.
 - `index_scope` is optional. Admins may select `open`, `restricted`, or `showroom`; platform users always write to their `tenant` index regardless of this argument.
 
 Errors (4xx/5xx) raise `requests.HTTPError`. When the server returns a `{"status": "fail", "message": "..."}` body, that message is included in the exception text and the original response is available as `err.response`.
