@@ -9,7 +9,7 @@ import jwt
 import requests
 
 T_AdminIndexScope = t.Literal["open", "restricted", "showroom"]
-T_BulkIndexScope = t.Literal["open", "restricted", "showroom", "tenant"]
+T_IndexScope = t.Literal["open", "restricted", "showroom", "tenant"]
 
 
 class Maltiverse:
@@ -332,7 +332,7 @@ class Maltiverse:
         self,
         indicators,
         *,
-        index_scope: t.Optional[T_BulkIndexScope] = None,
+        index_scope: t.Optional[T_IndexScope] = None,
     ):
         """Upload a batch of indicators via ``POST /bulk``.
 
