@@ -41,10 +41,20 @@ From this point request will be sent with authentication JWT parameter if requir
 
 
 + ip_get()
++ ip_put()
++ ip_delete()
 + hostname_get()
++ hostname_put()
++ hostname_delete()
 + url_get()
++ url_put()
++ url_delete()
 + sample_get()
++ sample_put()
++ sample_delete()
 + email_get()
++ email_put()
++ email_delete()
 + ioc_put()
 + ioc_delete()
 
@@ -161,6 +171,30 @@ Output
 }
 ```
 
+## [2.3.2 - PUT/DELETE](#table-of-contents)
+
+Uploads or deletes an IPv4 observable using the type-specific `/ip` endpoint.
+
+```python
+from maltiverse import Maltiverse
+api = Maltiverse(auth_token="token")
+
+api.ip_put({
+    "ip_addr": "1.2.3.4",
+    "classification": "malicious",
+    "type": "ip",
+    "tag": ["scanner"],
+    "blacklist": [
+        {
+            "description": "Port scanning activity",
+            "source": "My Feed"
+        }
+    ]
+})
+
+api.ip_delete("1.2.3.4")
+```
+
 ## [2.4 - Hostname](#table-of-contents)
 ## [2.4.1 - GET](#table-of-contents)
 
@@ -220,6 +254,30 @@ Output
 ```
 
 
+## [2.4.2 - PUT/DELETE](#table-of-contents)
+
+Uploads or deletes a hostname observable using the type-specific `/hostname` endpoint.
+
+```python
+from maltiverse import Maltiverse
+api = Maltiverse(auth_token="token")
+
+api.hostname_put({
+    "hostname": "malicious.example.com",
+    "classification": "malicious",
+    "type": "hostname",
+    "tag": ["malware", "c2"],
+    "blacklist": [
+        {
+            "description": "Command and control server",
+            "source": "My Feed"
+        }
+    ]
+})
+
+api.hostname_delete("malicious.example.com")
+```
+
 ## [2.5 - Url](#table-of-contents)
 ## [2.5.1 - GET](#table-of-contents)
 
@@ -271,6 +329,30 @@ Output
 }
 ```
 
+
+## [2.5.2 - PUT/DELETE](#table-of-contents)
+
+Uploads or deletes a URL observable using the type-specific `/url` endpoint. The SHA256 checksum is computed automatically from the URL string.
+
+```python
+from maltiverse import Maltiverse
+api = Maltiverse(auth_token="token")
+
+api.url_put({
+    "url": "https://malicious.example.com/payload",
+    "classification": "malicious",
+    "type": "url",
+    "tag": ["phishing"],
+    "blacklist": [
+        {
+            "description": "Phishing page",
+            "source": "My Feed"
+        }
+    ]
+})
+
+api.url_delete("https://malicious.example.com/payload")
+```
 
 ## [2.6 - Sample](#table-of-contents)
 ## [2.6.1 - GET](#table-of-contents)
@@ -451,4 +533,68 @@ Output
     "size": 3661312,
     "type": "sample"
 }
+```
+
+## [2.6.2 - PUT/DELETE](#table-of-contents)
+
+Uploads or deletes a sample observable using the type-specific `/sample` endpoint.
+
+```python
+from maltiverse import Maltiverse
+api = Maltiverse(auth_token="token")
+
+api.sample_put({
+    "sha256": "b4e29d41ca04fccfa5d92be5bae506c556c6c880a4f5e9932f1e4a0766a2fd15",
+    "classification": "malicious",
+    "type": "sample",
+    "filename": ["malware.exe"],
+    "tag": ["trojan", "dropper"],
+    "blacklist": [
+        {
+            "description": "Trojan dropper",
+            "source": "My Feed"
+        }
+    ]
+})
+
+api.sample_delete("b4e29d41ca04fccfa5d92be5bae506c556c6c880a4f5e9932f1e4a0766a2fd15")
+```
+
+
+## [2.7 - Email](#table-of-contents)
+## [2.7.1 - GET](#table-of-contents)
+
+Retrieves an email address in JSON format.
+
+```python
+import json
+from maltiverse import Maltiverse
+api = Maltiverse()
+
+result = api.email_get("spammer@example.com")
+print(json.dumps(result, indent=4, sort_keys=True))
+```
+
+## [2.7.2 - PUT/DELETE](#table-of-contents)
+
+Uploads or deletes an email address observable using the type-specific `/email` endpoint.
+
+```python
+from maltiverse import Maltiverse
+api = Maltiverse(auth_token="token")
+
+api.email_put({
+    "email_address": "spammer@example.com",
+    "classification": "malicious",
+    "type": "email",
+    "tag": ["spam"],
+    "blacklist": [
+        {
+            "description": "Spam campaign sender",
+            "source": "My Feed"
+        }
+    ]
+})
+
+api.email_delete("spammer@example.com")
 ```
