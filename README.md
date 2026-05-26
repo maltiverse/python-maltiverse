@@ -79,6 +79,34 @@ api.ioc_delete({
 })
 ```
 
+## [2.2.2 - Bulk upload](#table-of-contents)
+
+For batches of indicators, use the `/bulk` endpoint via `bulk_upsert()`. The server applies all bulk writes through its buffered ingestion path, so the call is fire-and-forget.
+
+```python
+from maltiverse import Maltiverse
+api = Maltiverse(auth_token="token")
+
+indicators = [
+    {"ip_addr": "60.60.60.60", "type": "ip", "classification": "whitelisted"},
+    {"hostname": "example.com", "type": "hostname", "classification": "neutral"},
+]
+
+api.bulk_upsert(indicators)
+api.bulk_upsert(indicators, index_scope="restricted")
+```
+
+`indicators` may be a list of indicator dicts or `{"indicators": [...]}`.
+
+Things to know about the bulk path:
+
+- Lower write pressure for large uploads; duplicate writes for the same indicator within the server's coalescing window are merged (counts add, no duplicate documents).
+- Indicators are **not** immediately searchable — expect a short delay before they appear.
+- No progress or completion tracking is exposed; the returned task id (when present) is informational only.
+- `index_scope` is optional. Admins may select `open`, `restricted`, or `showroom`; platform users always write to their `tenant` index regardless of this argument.
+
+Errors (4xx/5xx) raise `requests.HTTPError`. When the server returns a `{"status": "fail", "message": "..."}` body, that message is included in the exception text and the original response is available as `err.response`.
+
 ## [2.3 - IPv4](#table-of-contents)
 ## [2.3.1 - GET](#table-of-contents)
 
@@ -357,7 +385,7 @@ api.url_delete("https://malicious.example.com/payload")
 ## [2.6 - Sample](#table-of-contents)
 ## [2.6.1 - GET](#table-of-contents)
 
-Retrieves information about a sample/file in JSON format. 
+Retrieves information about a sample/file in JSON format.
 
   + sample_get: Retrieves a sample by its SHA256 hash.
   + sample_get_by_md5: Retrieves a sample by its MD5 hash.

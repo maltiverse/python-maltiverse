@@ -1,6 +1,6 @@
 [project]
 name = "maltiverse"
-version = "1.2.11"
+version = "1.2.13"
 authors = [
   { name="Antonio Gomez", email="antonio.gomez@maltiverse.com" },
   { name="David Gil", email="david.gil@maltiverse.com" },

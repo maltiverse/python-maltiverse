@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.2.13
+- Add `bulk_upsert()` helper that targets the `/bulk` endpoint. The server applies all bulk writes through its buffered ingestion path, so the call is fire-and-forget and indicators appear after a short delay.
+
 ## 1.2.11
 - Add generic IOC helpers for the directly supported API operations: `ioc_put()` and `ioc_delete()` use the generic `/ioc` API endpoint.
 

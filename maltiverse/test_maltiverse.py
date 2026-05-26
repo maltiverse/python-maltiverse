@@ -2,9 +2,11 @@
 # -*- coding: utf-8 -*-
 
 
+import json
 import unittest
 import typing as t
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
+import requests
 from maltiverse import Maltiverse
 from maltiverse.maltiverse import T_AdminIndexScope
 import time
@@ -237,6 +239,91 @@ class TestMaltiverseIocHelpers(unittest.TestCase):
             kwargs["data"], '{"hostname": "example.com", "type": "hostname"}'
         )
         self.assertEqual(item["status"], "success")
+
+
+class TestMaltiverseBulk(unittest.TestCase):
+    """Unit tests for the /bulk upsert helpers."""
+
+    def _mock_response(self, status_code=200, json_body=None, text=""):
+        resp = MagicMock()
+        resp.status_code = status_code
+        resp.ok = 200 <= status_code < 400
+        resp.text = text
+        if json_body is None:
+            resp.json.side_effect = ValueError("no body")
+        else:
+            resp.json.return_value = json_body
+        return resp
+
+    def test_bulk_upsert_posts_list_payload(self):
+        m = Maltiverse()
+        indicators = [
+            {"ip_addr": "1.1.1.1", "type": "ip"},
+            {"hostname": "example.com", "type": "hostname"},
+        ]
+        with patch(
+            "maltiverse.maltiverse.requests.post",
+            return_value=self._mock_response(json_body={"status": "success"}),
+        ) as post:
+            result = m.bulk_upsert(indicators)
+        post.assert_called_once()
+        _, kwargs = post.call_args
+        self.assertEqual(kwargs["params"], {})
+        self.assertEqual(json.loads(kwargs["data"]), indicators)
+        self.assertEqual(post.call_args[0][0], "https://api.maltiverse.com/bulk")
+        self.assertEqual(result, {"status": "success"})
+
+    def test_bulk_upsert_accepts_indicators_dict(self):
+        m = Maltiverse()
+        body = {"indicators": [{"ip_addr": "1.1.1.1", "type": "ip"}]}
+        with patch(
+            "maltiverse.maltiverse.requests.post",
+            return_value=self._mock_response(json_body={"status": "success"}),
+        ) as post:
+            m.bulk_upsert(body)
+        self.assertEqual(json.loads(post.call_args.kwargs["data"]), body)
+
+    def test_bulk_upsert_rejects_dict_without_indicators(self):
+        m = Maltiverse()
+        with self.assertRaises(ValueError):
+            m.bulk_upsert({"foo": "bar"})
+
+    def test_bulk_upsert_sets_index_scope(self):
+        m = Maltiverse()
+        indicators = [{"ip_addr": "1.1.1.1", "type": "ip"}]
+        with patch(
+            "maltiverse.maltiverse.requests.post",
+            return_value=self._mock_response(
+                status_code=202, json_body={"task": "abc-123"}
+            ),
+        ) as post:
+            result = m.bulk_upsert(indicators, index_scope="restricted")
+        _, kwargs = post.call_args
+        self.assertEqual(kwargs["params"], {"index_scope": "restricted"})
+        self.assertEqual(result, {"task": "abc-123"})
+
+    def test_bulk_upsert_raises_http_error_surfacing_server_message(self):
+        m = Maltiverse()
+        resp = self._mock_response(
+            status_code=400,
+            json_body={"status": "fail", "message": "bad payload"},
+        )
+        with patch("maltiverse.maltiverse.requests.post", return_value=resp):
+            with self.assertRaises(requests.HTTPError) as ctx:
+                m.bulk_upsert([{"ip_addr": "1.1.1.1", "type": "ip"}])
+        self.assertIn("bad payload", str(ctx.exception))
+        self.assertIn("fail", str(ctx.exception))
+        self.assertIs(ctx.exception.response, resp)
+
+    def test_bulk_upsert_raises_http_error_without_json_body(self):
+        m = Maltiverse()
+        resp = self._mock_response(status_code=500, text="boom")
+        resp.raise_for_status.side_effect = requests.HTTPError(
+            "500 Server Error", response=resp
+        )
+        with patch("maltiverse.maltiverse.requests.post", return_value=resp):
+            with self.assertRaises(requests.HTTPError):
+                m.bulk_upsert([{"ip_addr": "1.1.1.1", "type": "ip"}])
 
 
 if __name__ == "__main__":

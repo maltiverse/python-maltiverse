@@ -9,6 +9,7 @@ import jwt
 import requests
 
 T_AdminIndexScope = t.Literal["open", "restricted", "showroom"]
+T_IndexScope = t.Literal["open", "restricted", "showroom", "tenant"]
 
 
 class Maltiverse:
@@ -285,6 +286,74 @@ class Maltiverse:
     def email_delete(self, email_address):
         """Delete an IP address observable."""
         return self._request("DELETE", f"{self.endpoint}/email/{email_address}")
+
+    def _serialize_bulk_indicators(self, indicators):
+        """Serialize indicators for the /bulk endpoint.
+
+        Accepts either a list of indicator dicts or a dict with an
+        ``indicators`` key, matching the server contract.
+        """
+        if isinstance(indicators, dict):
+            if "indicators" not in indicators:
+                raise ValueError("bulk payload dict must contain an 'indicators' key")
+            payload = indicators
+        else:
+            payload = list(indicators)
+        return json.dumps(payload)
+
+    def _bulk_post(self, params, data):
+        """POST to /bulk, raising ``requests.HTTPError`` on 4xx/5xx.
+
+        When the server returns a ``{"status": "fail", "message": "..."}``
+        body, the message is interpolated into the raised error so the caller
+        sees the server's reason without having to re-parse the response.
+        """
+        response = requests.post(
+            f"{self.endpoint}/bulk",
+            headers=self._update_headers({"Content-Type": "application/json"}),
+            params=params,
+            data=data,
+        )
+        if not response.ok:
+            try:
+                body = response.json()
+            except ValueError:
+                body = None
+            if isinstance(body, dict) and body.get("message"):
+                raise requests.HTTPError(
+                    f"{response.status_code} {body.get('status') or 'error'}: "
+                    f"{body['message']}",
+                    response=response,
+                )
+            response.raise_for_status()
+        return response.json()
+
+    def bulk_upsert(
+        self,
+        indicators,
+        *,
+        index_scope: t.Optional[T_IndexScope] = None,
+    ):
+        """Upload a batch of indicators via ``POST /bulk``.
+
+        Indicators may be passed as a list of indicator dicts or as
+        ``{"indicators": [...]}``.
+
+        The server applies all bulk writes through its buffered ingestion
+        path: duplicate writes within the coalescing window are merged and
+        indicators are not immediately searchable. Returns the parsed JSON
+        response (typically ``{"task": "<id>"}``); there is no progress
+        endpoint for that task id, so treat the call as fire-and-forget.
+
+        ``index_scope`` is admin-only for the ``open``/``restricted``/
+        ``showroom`` values; platform users always write to their tenant
+        index regardless of this argument.
+        """
+        params = {}
+        if index_scope is not None:
+            params["index_scope"] = index_scope
+        data = self._serialize_bulk_indicators(indicators)
+        return self._bulk_post(params, data)
 
     def search(
         self,
