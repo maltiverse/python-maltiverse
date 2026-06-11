@@ -145,7 +145,7 @@ class Maltiverse:
         self,
         ip_dict: dict,
         index_scope: t.Optional[T_AdminIndexScope] = None,
-        enqueue_ingestion: t.Optional[bool] = None,
+        enqueue_ingestion: t.Optional[bool] = True,
     ):
         """Update or insert an IP address observable."""
         return self._request(
@@ -170,7 +170,7 @@ class Maltiverse:
         self,
         hostname_dict: dict,
         index_scope: t.Optional[T_AdminIndexScope] = None,
-        enqueue_ingestion: t.Optional[bool] = None,
+        enqueue_ingestion: t.Optional[bool] = True,
     ):
         """Update or insert a hostname observable."""
         return self._request(
@@ -200,7 +200,7 @@ class Maltiverse:
         self,
         url_dict: dict,
         index_scope: t.Optional[T_AdminIndexScope] = None,
-        enqueue_ingestion: t.Optional[bool] = None,
+        enqueue_ingestion: t.Optional[bool] = True,
     ):
         """Update or insert a URL observable."""
         urlchecksum = hashlib.sha256(url_dict["url"].encode("utf-8")).hexdigest()
@@ -245,7 +245,7 @@ class Maltiverse:
         self,
         sample_dict: dict,
         index_scope: t.Optional[T_AdminIndexScope] = None,
-        enqueue_ingestion: t.Optional[bool] = None,
+        enqueue_ingestion: t.Optional[bool] = True,
     ):
         """Update or insert a sample observable."""
         return self._request(
@@ -270,7 +270,7 @@ class Maltiverse:
         self,
         email_dict: dict,
         index_scope: t.Optional[T_AdminIndexScope] = None,
-        enqueue_ingestion: t.Optional[bool] = None,
+        enqueue_ingestion: t.Optional[bool] = True,
     ):
         """Update or insert an email address observable."""
         return self._request(
@@ -339,11 +339,12 @@ class Maltiverse:
         Indicators may be passed as a list of indicator dicts or as
         ``{"indicators": [...]}``.
 
-        The server applies all bulk writes through its buffered ingestion
-        path: duplicate writes within the coalescing window are merged and
-        indicators are not immediately searchable. Returns the parsed JSON
-        response (typically ``{"task": "<id>"}``); there is no progress
-        endpoint for that task id, so treat the call as fire-and-forget.
+        The server always enqueues bulk writes (``enqueue_ingestion`` is
+        hardcoded to ``True`` server-side): duplicate writes within the
+        coalescing window are merged and indicators are not immediately
+        searchable. Returns the parsed JSON response (typically
+        ``{"task": "<id>"}``); there is no progress endpoint for that task
+        id, so treat the call as fire-and-forget.
 
         ``index_scope`` is admin-only for the ``open``/``restricted``/
         ``showroom`` values; platform users always write to their tenant

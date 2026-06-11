@@ -58,6 +58,8 @@ From this point request will be sent with authentication JWT parameter if requir
 + ioc_put()
 + ioc_delete()
 
+> **Note:** All PUT methods default to `enqueue_ingestion=True` (buffered async ingestion). Pass `enqueue_ingestion=False` explicitly if you need synchronous writes.
+
 ## [2.2 - Generic IOC](#table-of-contents)
 ## [2.2.1 - POST/DELETE](#table-of-contents)
 
