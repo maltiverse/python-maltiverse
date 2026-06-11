@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.2.14
+- Change default value of `enqueue_ingestion` to `True` in all PUT methods (`ip_put`, `hostname_put`, `url_put`, `sample_put`, `email_put`). Previously the parameter was not sent when omitted, causing the server to apply synchronous writes. Pass `enqueue_ingestion=False` explicitly to restore synchronous behaviour.
+
 ## 1.2.13
 - Add `bulk_upsert()` helper that targets the `/bulk` endpoint. The server applies all bulk writes through its buffered ingestion path, so the call is fire-and-forget and indicators appear after a short delay.
 
